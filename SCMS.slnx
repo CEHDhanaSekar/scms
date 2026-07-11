@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="scms.API/scms.API.csproj" DisplayName="SCMS.API" />
+  <Project Path="scms.Application/scms.Application.csproj" DisplayName="SCMS.Application" />
+  <Project Path="scms.Domain/scms.Domain.csproj" DisplayName="SCMS.Domain" />
+  <Project Path="scms.Infrastructure/scms.Infrastructure.csproj" DisplayName="SCMS.Infrastructure" />
+  <Project Path="scms.Shared/scms.Shared.csproj" DisplayName="SCMS.Shared" />
+</Solution>
