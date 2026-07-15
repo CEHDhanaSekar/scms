@@ -1,7 +1,7 @@
 ﻿using SCMS.Domain.Enums;
 using SCMS.Shared.Entities;
 
-namespace SCMS.Domain.Entities;
+namespace scms.Domain.Entities.Tenant;
 
 public class Employee : AuditableEntity
 {

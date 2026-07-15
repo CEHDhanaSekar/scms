@@ -1,7 +1,7 @@
 ﻿// SCMS.Domain/Entities/Permission.cs
 using SCMS.Shared.Entities;
 
-namespace SCMS.Domain.Entities;
+namespace scms.Domain.Entities.Tenant;
 
 public class Permission : BaseEntity
 {

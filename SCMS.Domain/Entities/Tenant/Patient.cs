@@ -1,6 +1,6 @@
 ﻿using SCMS.Shared.Entities;
 
-namespace SCMS.Domain.Entities;
+namespace scms.Domain.Entities.Tenant;
 
 public class Patient : AuditableEntity
 {
