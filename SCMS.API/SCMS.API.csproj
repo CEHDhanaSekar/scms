@@ -23,10 +23,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\scms.Application\SCMS.Application.csproj" />
     <ProjectReference Include="..\scms.Infrastructure\SCMS.Infrastructure.csproj" />
     <ProjectReference Include="..\scms.Shared\SCMS.Shared.csproj" />

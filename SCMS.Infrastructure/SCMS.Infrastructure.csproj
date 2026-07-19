@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -26,10 +26,6 @@
     <ProjectReference Include="..\scms.Application\SCMS.Application.csproj" />
     <ProjectReference Include="..\scms.Domain\SCMS.Domain.csproj" />
     <ProjectReference Include="..\scms.Shared\SCMS.Shared.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Extensions\" />
   </ItemGroup>
 
 </Project>
