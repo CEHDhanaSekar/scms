@@ -48,7 +48,7 @@ public class ScmsDbContext(DbContextOptions<ScmsDbContext> options) : DbContext(
         {
             tb.HasCheckConstraint(
                 "ck_tenant_code_alnum_hyphen",
-                "code ~ '^(?!-)(?!.*--)[A-Za-z0-9-]+(?<!-)$'");
+                "tenant_code ~ '^(?!-)(?!.*--)[A-Za-z0-9-]+(?<!-)$'");
         });
     }
 }

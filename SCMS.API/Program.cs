@@ -3,6 +3,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
+builder.Services.AddCustomScmsDbContext(builder.Configuration);
+
+builder.Services.AddApplicationServices();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
