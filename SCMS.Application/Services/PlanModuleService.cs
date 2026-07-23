@@ -1,5 +1,6 @@
 using scms.Application.DTOs;
 using scms.Application.Interfaces;
+using SCMS.Shared.Exceptions;
 
 namespace scms.Application.Services;
 
@@ -23,7 +24,7 @@ public class PlanModuleService(IPlanModuleRepository repository) : IPlanModuleSe
     public async Task<PlanModuleDto?> GetPlanModuleByIdAsync(Guid id)
     {
         var entity = await repository.GetByIdAsync(id);
-        if (entity == null) return null;
+        if (entity == null) throw new NotFoundException("PlanModule not found");
         return MapToDto(entity);
     }
 
