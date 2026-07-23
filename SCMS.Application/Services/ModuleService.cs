@@ -1,5 +1,6 @@
 using scms.Application.DTOs;
 using scms.Application.Interfaces;
+using SCMS.Shared.Exceptions;
 
 namespace scms.Application.Services;
 
@@ -23,7 +24,7 @@ public class ModuleService(IModuleRepository moduleRepository) : IModuleService
     public async Task<ModuleDto?> GetModuleByIdAsync(Guid id)
     {
         var module = await moduleRepository.GetByIdAsync(id);
-        if (module == null) return null;
+        if (module == null) throw new NotFoundException("Module not found");
         return MapToDto(module);
     }
 
