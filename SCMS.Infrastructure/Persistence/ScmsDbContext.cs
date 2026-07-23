@@ -28,6 +28,7 @@ public class ScmsDbContext(DbContextOptions<ScmsDbContext> options) : DbContext(
 
     private static void ConfigPermission(EntityTypeBuilder<Permission> e)
     {
+        e.HasData(DataSeed.Permissions);
     }
 
     private static void ConfigPlan(EntityTypeBuilder<Plan> e)
