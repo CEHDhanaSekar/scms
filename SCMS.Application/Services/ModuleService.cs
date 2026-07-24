@@ -1,3 +1,4 @@
+using AutoMapper;
 using scms.Application.DTOs;
 using scms.Application.Interfaces;
 using SCMS.Shared.Exceptions;
@@ -13,33 +14,26 @@ public interface IModuleService
     Task<bool> DeleteModuleAsync(Guid id);
 }
 
-public class ModuleService(IModuleRepository moduleRepository) : IModuleService
+public class ModuleService(IModuleRepository moduleRepository, IMapper mapper) : IModuleService
 {
     public async Task<IEnumerable<ModuleDto>> GetAllModulesAsync()
     {
         var modules = await moduleRepository.GetAllAsync();
-        return modules.Select(MapToDto);
+        return mapper.Map<IEnumerable<ModuleDto>>(modules);
     }
 
     public async Task<ModuleDto?> GetModuleByIdAsync(Guid id)
     {
         var module = await moduleRepository.GetByIdAsync(id);
         if (module == null) throw new NotFoundException("Module not found");
-        return MapToDto(module);
+        return mapper.Map<ModuleDto>(module);
     }
 
     public async Task<ModuleDto> CreateModuleAsync(CreateModuleDto dto)
     {
-        var module = new Module
-        {
-            ModuleKey = dto.ModuleKey,
-            ModuleName = dto.ModuleName,
-            Description = dto.Description,
-            IsActive = dto.IsActive
-        };
-
+        var module = mapper.Map<Module>(dto);
         var created = await moduleRepository.AddAsync(module);
-        return MapToDto(created);
+        return mapper.Map<ModuleDto>(created);
     }
 
     public async Task<bool> UpdateModuleAsync(Guid id, UpdateModuleDto dto)
@@ -47,9 +41,7 @@ public class ModuleService(IModuleRepository moduleRepository) : IModuleService
         var module = await moduleRepository.GetByIdAsync(id);
         if (module == null) return false;
 
-        module.ModuleName = dto.ModuleName;
-        module.Description = dto.Description;
-        module.IsActive = dto.IsActive;
+        mapper.Map(dto, module);
 
         await moduleRepository.UpdateAsync(module);
         return true;
@@ -62,17 +54,5 @@ public class ModuleService(IModuleRepository moduleRepository) : IModuleService
 
         await moduleRepository.DeleteAsync(id);
         return true;
-    }
-
-    private static ModuleDto MapToDto(Module module)
-    {
-        return new ModuleDto
-        {
-            Id = module.Id,
-            ModuleKey = module.ModuleKey,
-            ModuleName = module.ModuleName,
-            Description = module.Description,
-            IsActive = module.IsActive
-        };
     }
 }

@@ -1,3 +1,4 @@
+using AutoMapper;
 using scms.Application.DTOs;
 using scms.Application.Interfaces;
 using SCMS.Shared.Exceptions;
@@ -13,36 +14,26 @@ public interface IPlanService
     Task<bool> DeletePlanAsync(Guid id);
 }
 
-public class PlanService(IPlanRepository repository) : IPlanService
+public class PlanService(IPlanRepository repository, IMapper mapper) : IPlanService
 {
     public async Task<IEnumerable<PlanDto>> GetAllPlansAsync()
     {
         var entities = await repository.GetAllAsync();
-        return entities.Select(MapToDto);
+        return mapper.Map<IEnumerable<PlanDto>>(entities);
     }
 
     public async Task<PlanDto?> GetPlanByIdAsync(Guid id)
     {
         var entity = await repository.GetByIdAsync(id);
         if (entity == null) throw new NotFoundException("Plan not found");
-        return MapToDto(entity);
+        return mapper.Map<PlanDto>(entity);
     }
 
     public async Task<PlanDto> CreatePlanAsync(CreatePlanDto dto)
     {
-        var entity = new Plan
-        {
-            PlanName = dto.PlanName,
-            MaxUsers = dto.MaxUsers,
-            MaxEmployees = dto.MaxEmployees,
-            PriceMonthly = dto.PriceMonthly,
-            PriceYearly = dto.PriceYearly,
-            BillingCycle = dto.BillingCycle,
-            IsActive = dto.IsActive
-        };
-
+        var entity = mapper.Map<Plan>(dto);
         var created = await repository.AddAsync(entity);
-        return MapToDto(created);
+        return mapper.Map<PlanDto>(created);
     }
 
     public async Task<bool> UpdatePlanAsync(Guid id, UpdatePlanDto dto)
@@ -50,13 +41,7 @@ public class PlanService(IPlanRepository repository) : IPlanService
         var entity = await repository.GetByIdAsync(id);
         if (entity == null) return false;
 
-        entity.PlanName = dto.PlanName;
-        entity.MaxUsers = dto.MaxUsers;
-        entity.MaxEmployees = dto.MaxEmployees;
-        entity.PriceMonthly = dto.PriceMonthly;
-        entity.PriceYearly = dto.PriceYearly;
-        entity.BillingCycle = dto.BillingCycle;
-        entity.IsActive = dto.IsActive;
+        mapper.Map(dto, entity);
 
         await repository.UpdateAsync(entity);
         return true;
@@ -69,20 +54,5 @@ public class PlanService(IPlanRepository repository) : IPlanService
 
         await repository.DeleteAsync(id);
         return true;
-    }
-
-    private static PlanDto MapToDto(Plan entity)
-    {
-        return new PlanDto
-        {
-            Id = entity.Id,
-            PlanName = entity.PlanName,
-            MaxUsers = entity.MaxUsers,
-            MaxEmployees = entity.MaxEmployees,
-            PriceMonthly = entity.PriceMonthly,
-            PriceYearly = entity.PriceYearly,
-            BillingCycle = entity.BillingCycle,
-            IsActive = entity.IsActive
-        };
     }
 }

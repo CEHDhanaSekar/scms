@@ -1,3 +1,4 @@
+using AutoMapper;
 using scms.Application.DTOs;
 using scms.Application.Interfaces;
 using SCMS.Shared.Exceptions;
@@ -13,32 +14,26 @@ public interface IPlanModuleService
     Task<bool> DeletePlanModuleAsync(Guid id);
 }
 
-public class PlanModuleService(IPlanModuleRepository repository) : IPlanModuleService
+public class PlanModuleService(IPlanModuleRepository repository, IMapper mapper) : IPlanModuleService
 {
     public async Task<IEnumerable<PlanModuleDto>> GetAllPlanModulesAsync()
     {
         var entities = await repository.GetAllAsync();
-        return entities.Select(MapToDto);
+        return mapper.Map<IEnumerable<PlanModuleDto>>(entities);
     }
 
     public async Task<PlanModuleDto?> GetPlanModuleByIdAsync(Guid id)
     {
         var entity = await repository.GetByIdAsync(id);
         if (entity == null) throw new NotFoundException("PlanModule not found");
-        return MapToDto(entity);
+        return mapper.Map<PlanModuleDto>(entity);
     }
 
     public async Task<PlanModuleDto> CreatePlanModuleAsync(CreatePlanModuleDto dto)
     {
-        var entity = new PlanModule
-        {
-            PlanId = dto.PlanId,
-            ModuleId = dto.ModuleId,
-            IsEnabled = dto.IsEnabled
-        };
-
+        var entity = mapper.Map<PlanModule>(dto);
         var created = await repository.AddAsync(entity);
-        return MapToDto(created);
+        return mapper.Map<PlanModuleDto>(created);
     }
 
     public async Task<bool> UpdatePlanModuleAsync(Guid id, UpdatePlanModuleDto dto)
@@ -46,7 +41,7 @@ public class PlanModuleService(IPlanModuleRepository repository) : IPlanModuleSe
         var entity = await repository.GetByIdAsync(id);
         if (entity == null) return false;
 
-        entity.IsEnabled = dto.IsEnabled;
+        mapper.Map(dto, entity);
 
         await repository.UpdateAsync(entity);
         return true;
@@ -59,16 +54,5 @@ public class PlanModuleService(IPlanModuleRepository repository) : IPlanModuleSe
 
         await repository.DeleteAsync(id);
         return true;
-    }
-
-    private static PlanModuleDto MapToDto(PlanModule entity)
-    {
-        return new PlanModuleDto
-        {
-            Id = entity.Id,
-            PlanId = entity.PlanId,
-            ModuleId = entity.ModuleId,
-            IsEnabled = entity.IsEnabled
-        };
     }
 }
