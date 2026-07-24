@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using scms.Infrastructure.Data;
@@ -11,9 +12,11 @@ using scms.Infrastructure.Data;
 namespace scms.Infrastructure.Migrations
 {
     [DbContext(typeof(ScmsDbContext))]
-    partial class ScmsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260724140309_PermissionDataSeed")]
+    partial class PermissionDataSeed
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
