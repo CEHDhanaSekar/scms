@@ -46,7 +46,8 @@ public class GlobalExceptionMiddleware
 
     private async Task HandleBaseExceptionAsync(HttpContext context, BaseException exception)
     {
-        _logger.LogError(exception, exception.Message);
+        var logLevel = (int)exception.StatusCode >= 500 ? LogLevel.Error : LogLevel.Warning;
+        _logger.Log(logLevel, exception, exception.Message);
 
         context.Response.ContentType = "application/json";
         context.Response.StatusCode = (int)exception.StatusCode;
@@ -65,8 +66,6 @@ public class GlobalExceptionMiddleware
 
     private async Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
-        _logger.LogError(exception, exception.Message);
-
         var statusCode = exception switch
         {
             ArgumentException => StatusCodes.Status400BadRequest,
@@ -74,6 +73,9 @@ public class GlobalExceptionMiddleware
             NotImplementedException => StatusCodes.Status501NotImplemented,
             _ => StatusCodes.Status500InternalServerError
         };
+
+        var logLevel = statusCode >= 500 ? LogLevel.Error : LogLevel.Warning;
+        _logger.Log(logLevel, exception, exception.Message);
 
         context.Response.ContentType = "application/json";
         context.Response.StatusCode = statusCode;
