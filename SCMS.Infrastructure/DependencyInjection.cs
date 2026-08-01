@@ -11,6 +11,8 @@ public static class DependencyInjection
     {
         services.AddCustomScmsDbContext(configuration);
         services.AddRepositories();
+        services.AddJwtAuthentication(configuration);
+        services.AddAuthServices();
         return services;
     }
 }
