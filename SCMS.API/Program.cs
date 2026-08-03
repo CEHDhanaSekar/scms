@@ -17,6 +17,8 @@ builder.AddCustomLogging();
 
 builder.Services.AddEndpointsApiExplorer();
 
+builder.Services.AddCustomCors(builder.Configuration);
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -26,6 +28,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors("CustomCorsPolicy");
 
 app.UseGlobalExceptionHandler();
 
