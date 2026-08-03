@@ -2,11 +2,13 @@ using Microsoft.AspNetCore.Mvc;
 using scms.Application.DTOs;
 using scms.Application.Services;
 using scms.Shared.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace scms.API.Controllers;
 
-[Route("api/v1/[controller]")]
+[Route("api/v1/owner/[controller]")]
 [ApiController]
+[Authorize(Policy = "OwnerOnly")]
 public class ModuleController(IModuleService moduleService) : ControllerBase
 {
     [HttpGet]
