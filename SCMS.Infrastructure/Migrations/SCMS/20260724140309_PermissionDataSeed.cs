@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 #pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
 
-namespace scms.Infrastructure.Migrations
+namespace scms.Infrastructure.Migrations.SCMS
 {
     /// <inheritdoc />
     public partial class PermissionDataSeed : Migration
