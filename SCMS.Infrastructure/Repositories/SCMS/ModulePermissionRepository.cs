@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using scms.Application.Interfaces;
 using scms.Infrastructure.Data;
 
-namespace scms.Infrastructure.Repositories;
+namespace scms.Infrastructure.Repositories.SCMS;
 
 public class ModulePermissionRepository(ScmsDbContext context) : IModulePermissionRepository
 {

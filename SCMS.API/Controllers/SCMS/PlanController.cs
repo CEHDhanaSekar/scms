@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using scms.Application.DTOs;
-using scms.Application.Services;
+using scms.Application.Services.SCMS;
 using scms.Shared.Models;
 
 namespace scms.API.Controllers;
@@ -9,96 +9,96 @@ namespace scms.API.Controllers;
 [Route("api/v1/owner/[controller]")]
 [ApiController]
 [Authorize(Policy = "OwnerOnly")]
-public class ModulePermissionController(IModulePermissionService service) : ControllerBase
+public class PlanController(IPlanService service) : ControllerBase
 {
     [HttpGet]
-    public async Task<ActionResult<ApiResponse<IEnumerable<ModulePermissionDto>>>> GetAll()
+    public async Task<ActionResult<ApiResponse<IEnumerable<PlanDto>>>> GetAll()
     {
-        var result = await service.GetAllModulePermissionsAsync();
-        return Ok(new ApiResponse<IEnumerable<ModulePermissionDto>>
+        var result = await service.GetAllPlansAsync();
+        return Ok(new ApiResponse<IEnumerable<PlanDto>>
         {
             Success = true,
             StatusCode = 200,
-            Message = "Module permissions retrieved successfully.",
+            Message = "Plans retrieved successfully.",
             Data = result
         });
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<ApiResponse<ModulePermissionDto>>> GetById(Guid id)
+    public async Task<ActionResult<ApiResponse<PlanDto>>> GetById(Guid id)
     {
-        var result = await service.GetModulePermissionByIdAsync(id);
+        var result = await service.GetPlanByIdAsync(id);
         if (result == null)
         {
-            return NotFound(new ApiResponse<ModulePermissionDto>
+            return NotFound(new ApiResponse<PlanDto>
             {
                 Success = false,
                 StatusCode = 404,
-                Message = "Module permission not found."
+                Message = "Plan not found."
             });
         }
-        return Ok(new ApiResponse<ModulePermissionDto>
+        return Ok(new ApiResponse<PlanDto>
         {
             Success = true,
             StatusCode = 200,
-            Message = "Module permission retrieved successfully.",
+            Message = "Plan retrieved successfully.",
             Data = result
         });
     }
 
     [HttpPost]
-    public async Task<ActionResult<ApiResponse<ModulePermissionDto>>> Create(CreateModulePermissionDto dto)
+    public async Task<ActionResult<ApiResponse<PlanDto>>> Create(CreatePlanDto dto)
     {
-        var created = await service.CreateModulePermissionAsync(dto);
-        var response = new ApiResponse<ModulePermissionDto>
+        var created = await service.CreatePlanAsync(dto);
+        var response = new ApiResponse<PlanDto>
         {
             Success = true,
             StatusCode = 201,
-            Message = "Module permission created successfully.",
+            Message = "Plan created successfully.",
             Data = created
         };
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, response);
     }
 
     [HttpPut("{id}")]
-    public async Task<ActionResult<ApiResponse<object>>> Update(Guid id, UpdateModulePermissionDto dto)
+    public async Task<ActionResult<ApiResponse<object>>> Update(Guid id, UpdatePlanDto dto)
     {
-        var success = await service.UpdateModulePermissionAsync(id, dto);
+        var success = await service.UpdatePlanAsync(id, dto);
         if (!success)
         {
             return NotFound(new ApiResponse<object>
             {
                 Success = false,
                 StatusCode = 404,
-                Message = "Module permission not found."
+                Message = "Plan not found."
             });
         }
         return Ok(new ApiResponse<object>
         {
             Success = true,
             StatusCode = 200,
-            Message = "Module permission updated successfully."
+            Message = "Plan updated successfully."
         });
     }
 
     [HttpDelete("{id}")]
     public async Task<ActionResult<ApiResponse<object>>> Delete(Guid id)
     {
-        var success = await service.DeleteModulePermissionAsync(id);
+        var success = await service.DeletePlanAsync(id);
         if (!success)
         {
             return NotFound(new ApiResponse<object>
             {
                 Success = false,
                 StatusCode = 404,
-                Message = "Module permission not found."
+                Message = "Plan not found."
             });
         }
         return Ok(new ApiResponse<object>
         {
             Success = true,
             StatusCode = 200,
-            Message = "Module permission deleted successfully."
+            Message = "Plan deleted successfully."
         });
     }
 }

@@ -3,7 +3,7 @@ using scms.Application.DTOs;
 using scms.Application.Interfaces;
 using SCMS.Shared.Exceptions;
 
-namespace scms.Application.Services;
+namespace scms.Application.Services.SCMS;
 
 public interface IPlanModuleService
 {
