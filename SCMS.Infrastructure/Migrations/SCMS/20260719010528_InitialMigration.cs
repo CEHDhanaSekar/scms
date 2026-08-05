@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace scms.Infrastructure.Migrations
+namespace scms.Infrastructure.Migrations.SCMS
 {
     /// <inheritdoc />
     public partial class InitialMigration : Migration

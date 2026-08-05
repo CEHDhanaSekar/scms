@@ -2,6 +2,7 @@ using Scalar.AspNetCore;
 using scms.Application;
 using scms.Infrastructure;
 using scms.Infrastructure.Extensions;
+using SCMS.API.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,24 +13,27 @@ builder.Services.AddApplication();
 
 builder.Services.AddInfrastructure(builder.Configuration);
 
+builder.AddCustomLogging();
+
 builder.Services.AddEndpointsApiExplorer();
 
-// builder.Services.AddSwaggerGen();
+builder.Services.AddCustomCors(builder.Configuration);
 
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
-    // app.UseSwagger();
-    // app.UseSwaggerUI();
-    app.MapOpenApi(); // Serves the raw JSON file
-    app.MapScalarApiReference(); // Creates the interactive UI
+    app.MapOpenApi();
+    app.MapScalarApiReference();
 }
 
 app.UseHttpsRedirection();
 
+app.UseCors("CustomCorsPolicy");
+
 app.UseGlobalExceptionHandler();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
