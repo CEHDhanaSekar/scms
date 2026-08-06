@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using scms.Infrastructure.Data;
+using scms.Infrastructure.Persistence;
 
 namespace scms.Infrastructure.Extensions;
 
@@ -34,20 +35,14 @@ public static class DbContextExtension
 
         services.AddDbContext<ScmsDbContext>(options =>
         {
-            options.UseNpgsql(connectionString, b =>
-            {
-                b.MigrationsAssembly(InfraAssembly);
-                b.MigrationsHistoryTable("__ef_migrations_history_scms");
-                b.UseQuerySplittingBehavior(QuerySplittingBehavior.SingleQuery);
-            })
-            .UseSnakeCaseNamingConvention();
+            Configure(options, connectionString, InfraAssembly, "__ef_migrations_history_scms");
         });
 
         return services;
     }
 
     /// <summary>
-    /// Registers a tenant-scoped <typeparamref name="TDb"/> using per-request connection strings.
+    /// Registers tenant-scoped <see cref="TenantDbContext"/> using per-request connection strings.
     /// <para>
     /// At runtime the connection string is resolved from <c>ITenantContext</c>
     /// (injected by TenantResolverMiddleware — to be wired up during multi-tenant implementation).
@@ -60,14 +55,11 @@ public static class DbContextExtension
     /// For design-time tooling set <c>TENANT_DESIGN_CONN</c> (env var or config key).
     /// </para>
     /// </summary>
-    public static IServiceCollection AddTenantDbContext<TDb>(
+    public static IServiceCollection AddTenantDbContext(
         this IServiceCollection services,
         string? migrationAssembly = null)
-        where TDb : DbContext
     {
-        AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
-
-        return services.AddDbContext<TDb>((sp, opt) =>
+        return services.AddDbContext<TenantDbContext>((sp, opt) =>
         {
             // ── Runtime path ──────────────────────────────────────────────────
             // TODO: Uncomment once ITenantContext / TenantResolverMiddleware is implemented.
@@ -75,7 +67,7 @@ public static class DbContextExtension
             // var cs = tenant?.ConnectionString;
             // if (!string.IsNullOrWhiteSpace(cs))
             // {
-            //     Configure(opt, cs, migrationAssembly);
+            //     Configure(opt, cs, migrationAssembly, "__ef_migrations_history_tenant");
             //     return;
             // }
 
@@ -87,7 +79,7 @@ public static class DbContextExtension
 
             if (!string.IsNullOrWhiteSpace(designCs))
             {
-                Configure(opt, designCs!, migrationAssembly);
+                Configure(opt, designCs!, migrationAssembly, "__ef_migrations_history_tenant");
                 return;
             }
 
@@ -96,16 +88,20 @@ public static class DbContextExtension
                 "At runtime ensure TenantResolverMiddleware ran (so ITenantContext is set). " +
                 "For migrations/design-time, set TENANT_DESIGN_CONN.");
         });
+    }
 
-        static void Configure(DbContextOptionsBuilder opt, string conn, string? migrationAssembly)
+    private static void Configure(
+        DbContextOptionsBuilder opt,
+        string conn,
+        string? migrationAssembly,
+        string historyTable)
+    {
+        opt.UseNpgsql(conn, b =>
         {
-            opt.UseNpgsql(conn, b =>
-            {
-                b.MigrationsAssembly(migrationAssembly ?? InfraAssembly);
-                b.MigrationsHistoryTable("__ef_migrations_history_tenant");
-                b.UseQuerySplittingBehavior(QuerySplittingBehavior.SingleQuery);
-            })
-            .UseSnakeCaseNamingConvention();
-        }
+            b.MigrationsAssembly(migrationAssembly ?? InfraAssembly);
+            b.MigrationsHistoryTable(historyTable);
+            b.UseQuerySplittingBehavior(QuerySplittingBehavior.SingleQuery);
+        })
+        .UseSnakeCaseNamingConvention();
     }
 }
