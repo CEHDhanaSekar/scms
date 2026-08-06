@@ -9,6 +9,39 @@ public static class DataSeed
 
     public static readonly Guid OwnerAdminId = Guid.Parse("B2222222-0000-0000-0000-000000000001");
 
+    // ── Master plan + vktech owner tenant ─────────────────────────────────────
+    public static readonly Guid MasterPlanId   = Guid.Parse("C3333333-0000-0000-0000-000000000001");
+    public static readonly Guid MasterTenantId = Guid.Parse("D4444444-0000-0000-0000-000000000001");
+
+    public static Plan MasterPlan => new()
+    {
+        Id = MasterPlanId,
+        PlanName = "Master",
+        MaxUsers = int.MaxValue,
+        MaxEmployees = int.MaxValue,
+        PriceMonthly = 0,
+        PriceYearly = 0,
+        BillingCycle = BillingCycle.Yearly,
+        IsActive = true,
+        CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+        CreatedBy = "System"
+    };
+
+    public static Tenant VkTechTenant => new()
+    {
+        Id = MasterTenantId,
+        TenantCode = "vktech",
+        Name = "VK Tech (Owner)",
+        ContactPersonName = "Admin",
+        Email = "admin@vktech.com",
+        MobilePhone = "0000000000",
+        DomainUrl = "http://localhost:4200",
+        IsActive = true,
+        PlanId = MasterPlanId,
+        CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+        CreatedBy = "System"
+    };
+
     private static string DefaultAdminPasswordHash => GenerateDefaultAdminPasswordHash();
 
     private static string GenerateDefaultAdminPasswordHash()

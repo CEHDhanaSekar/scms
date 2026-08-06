@@ -33,6 +33,8 @@ app.UseCors("CustomCorsPolicy");
 
 app.UseGlobalExceptionHandler();
 
+app.UseTenantResolver();         // Must run before UseAuthentication
+
 app.UseAuthentication();
 app.UseAuthorization();
 

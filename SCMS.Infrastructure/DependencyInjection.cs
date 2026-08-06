@@ -1,6 +1,8 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using scms.Infrastructure.Extensions;
+using scms.Infrastructure.Services;
+using scms.Shared.Models;
 
 namespace scms.Infrastructure;
 
@@ -13,11 +15,14 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructure(
         this IServiceCollection services, IConfiguration configuration)
     {
+        services.AddMemoryCache();
+
+        services.AddScoped<ITenantContext, TenantContext>();
+
         services.AddCustomScmsDbContext(configuration);
 
-        // TenantDbContext — per-request connection resolved via ITenantContext (to be enabled
-        // after multi-tenant middleware is implemented).  Falls back to TENANT_DESIGN_CONN
-        // for EF design-time tooling (dotnet ef migrations add …).
+        // TenantDbContext — per-request connection resolved via ITenantContext.
+        // Falls back to TENANT_DESIGN_CONN for EF design-time tooling.
         services.AddTenantDbContext(AssemblyName);
 
         services.AddRepositories();

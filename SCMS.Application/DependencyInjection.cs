@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using scms.Application.Services;
 using scms.Application.Services.SCMS;
 
 namespace scms.Application;
@@ -12,6 +13,7 @@ public static class DependencyInjection
         services.AddScoped<IModulePermissionService, ModulePermissionService>();
         services.AddScoped<IPlanService, PlanService>();
         services.AddScoped<IPlanModuleService, PlanModuleService>();
+        services.AddScoped<ITenantResolveService, TenantResolveService>();
         return services;
     }
 }

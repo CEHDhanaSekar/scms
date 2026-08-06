@@ -62,14 +62,13 @@ public static class DbContextExtension
         return services.AddDbContext<TenantDbContext>((sp, opt) =>
         {
             // ── Runtime path ──────────────────────────────────────────────────
-            // TODO: Uncomment once ITenantContext / TenantResolverMiddleware is implemented.
-            // var tenant = sp.GetService<ITenantContext>();
-            // var cs = tenant?.ConnectionString;
-            // if (!string.IsNullOrWhiteSpace(cs))
-            // {
-            //     Configure(opt, cs, migrationAssembly, "__ef_migrations_history_tenant");
-            //     return;
-            // }
+            var tenant = sp.GetService<scms.Shared.Models.ITenantContext>();
+            var cs = tenant?.ConnectionString;
+            if (!string.IsNullOrWhiteSpace(cs))
+            {
+                Configure(opt, cs, migrationAssembly, "__ef_migrations_history_tenant");
+                return;
+            }
 
             // ── Design-time / migration fallback ─────────────────────────────
             var cfg = sp.GetService<IConfiguration>();
