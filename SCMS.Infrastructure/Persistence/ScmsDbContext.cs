@@ -38,6 +38,7 @@ public class ScmsDbContext(DbContextOptions<ScmsDbContext> options) : DbContext(
 
     private static void ConfigPlan(EntityTypeBuilder<Plan> e)
     {
+        e.HasData(DataSeed.MasterPlan);
     }
 
     private static void ConfigModulePermission(EntityTypeBuilder<ModulePermission> e)
@@ -56,6 +57,9 @@ public class ScmsDbContext(DbContextOptions<ScmsDbContext> options) : DbContext(
                 "ck_tenant_code_alnum_hyphen",
                 "tenant_code ~ '^(?!-)(?!.*--)[A-Za-z0-9-]+(?<!-)$'");
         });
+        e.HasIndex(t => t.TenantCode).IsUnique();
+        e.HasIndex(t => t.DomainUrl).IsUnique().HasFilter("domain_url IS NOT NULL");
+        e.HasData(DataSeed.VkTechTenant);
     }
 
     private static void ConfigOwnerUser(EntityTypeBuilder<OwnerUser> e)

@@ -3,10 +3,14 @@ using scms.Application;
 using scms.Infrastructure;
 using scms.Infrastructure.Extensions;
 using SCMS.API.Extensions;
+using ValidationDI = scms.Application.DependencyInjection;
+
+using FluentValidation.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<scms.Application.Mapper.TenantMappingProfile>());
 builder.Services.AddOpenApi();
 
 builder.Services.AddApplication();
@@ -32,6 +36,8 @@ app.UseHttpsRedirection();
 app.UseCors("CustomCorsPolicy");
 
 app.UseGlobalExceptionHandler();
+
+app.UseTenantResolver();         // Must run before UseAuthentication
 
 app.UseAuthentication();
 app.UseAuthorization();
