@@ -18,7 +18,7 @@ public sealed class TenantRepository : ITenantRepository
     }
 
     /// <inheritdoc/>
-    public Task<Tenant?> FindByDomainUrlAsync(string domainUrl, CancellationToken ct = default) =>
+    public Task<Domain.Entities.SCMS.Tenant?> FindByDomainUrlAsync(string domainUrl, CancellationToken ct = default) =>
         _ctx.Tenants
             .AsNoTracking()
             .FirstOrDefaultAsync(

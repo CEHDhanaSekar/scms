@@ -1,4 +1,6 @@
 // SCMS.Infrastructure/Persistence/Seed/DataSeed.cs
+using scms.Domain.Entities.SCMS;
+
 public static class DataSeed
 {
     // Fixed GUIDs — never change these once migrated, or EF will treat it as delete+insert
@@ -56,7 +58,7 @@ public static class DataSeed
         return $"{Convert.ToBase64String(fixedSalt)}.{Convert.ToBase64String(hash)}";
     }
 
-    public static scms.Domain.Entities.SCMS.OwnerUser DefaultOwnerAdmin => new scms.Domain.Entities.SCMS.OwnerUser
+    public static OwnerUser DefaultOwnerAdmin => new OwnerUser
     {
         Id = OwnerAdminId,
         Name = "Super Admin",

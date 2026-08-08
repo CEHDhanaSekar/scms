@@ -1,4 +1,5 @@
 ﻿using SCMS.Shared.Entities;
+using scms.Domain.Entities.SCMS;
 
 public class Plan : AuditableEntity
 {

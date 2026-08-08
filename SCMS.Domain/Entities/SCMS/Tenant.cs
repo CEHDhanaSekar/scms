@@ -1,5 +1,7 @@
 ﻿using SCMS.Shared.Entities;
 
+namespace scms.Domain.Entities.SCMS;
+
 public class Tenant : AuditableEntity
 {
     public string TenantCode { get; set; } = string.Empty;
