@@ -1,3 +1,4 @@
+using Serilog;
 using Scalar.AspNetCore;
 using scms.Application;
 using scms.Infrastructure;
@@ -17,13 +18,15 @@ builder.Services.AddApplication();
 
 builder.Services.AddInfrastructure(builder.Configuration);
 
-builder.AddCustomLogging();
+builder.AddSeparatedSerilog();
 
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddCustomCors(builder.Configuration);
 
 var app = builder.Build();
+
+app.UseSerilogRequestLogging();
 
 if (app.Environment.IsDevelopment())
 {

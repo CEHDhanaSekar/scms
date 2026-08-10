@@ -1,11 +1,13 @@
 using Serilog;
+using Serilog.Core;
+using Serilog.Events;
 using Serilog.Sinks.PostgreSQL;
 
 namespace SCMS.API.Extensions;
 
 public static class LoggingExtensions
 {
-    public static WebApplicationBuilder AddCustomLogging(
+    public static WebApplicationBuilder AddSeparatedSerilog(
         this WebApplicationBuilder builder,
         string logsTableName = "logs",
         string schemaName = "public")
@@ -29,7 +31,18 @@ public static class LoggingExtensions
             lc.ReadFrom.Configuration(ctx.Configuration)
               .Enrich.FromLogContext();
 
-            lc.WriteTo.Logger(glob => glob
+            // Helper: true only for real tenant requests (TenantConn populated by middleware)
+            static bool HasTenantConn(LogEvent e) =>
+                e.Properties.TryGetValue("TenantConn", out var v)
+                && v is ScalarValue sv
+                && sv.Value is string s
+                && !string.IsNullOrWhiteSpace(s);
+
+            // GLOBAL sink (SCMS owner DB): exclude when a non-empty TenantConn is present
+            if (!string.IsNullOrWhiteSpace(scms_connection))
+            {
+                lc.WriteTo.Logger(glob => glob
+                    .Filter.ByExcluding(HasTenantConn)
                     .WriteTo.PostgreSQL(
                         connectionString: scms_connection,
                         tableName: logsTableName,
@@ -37,6 +50,24 @@ public static class LoggingExtensions
                         schemaName: schemaName,
                         needAutoCreateTable: true,
                         batchSizeLimit: 1));
+            }
+
+            // TENANT sink: route logs dynamically per tenant database connection
+            lc.WriteTo.Logger(ten => ten
+                .Filter.ByIncludingOnly(HasTenantConn)
+                .WriteTo.Map(
+                    keyPropertyName: "TenantConn",
+                    configure: (tenantConn, wt) =>
+                    {
+                        if (tenantConn is not string cs || string.IsNullOrWhiteSpace(cs)) return;
+                        wt.PostgreSQL(
+                            connectionString: cs,
+                            tableName: logsTableName,
+                            columnOptions: writers,
+                            schemaName: schemaName,
+                            needAutoCreateTable: true,
+                            batchSizeLimit: 1);
+                    }));
         });
 
         return builder;
