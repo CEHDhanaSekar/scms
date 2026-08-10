@@ -1,0 +1,587 @@
+# Multi-Tenant Implementation Plan (Revised)
+
+## Problem & Context
+
+SCMS has **two frontend apps**:
+- **`:4200`** — Owner/master SCMS application (tenant management, modules, plans, etc.)
+- **`:4201`, `:4202`, …** — Tenant-specific clinics
+
+Every API request (except owner routes and `/resolve`) must carry an `x-tenant-code` header. But **tenants don't know their code upfront** — the frontend discovers it at app startup by calling a `/resolve` endpoint with its Origin URL.
+
+---
+
+## High-Level Flow
+
+```mermaid
+sequenceDiagram
+    participant FE as Angular App (e.g. :4201)
+    participant API as SCMS Backend
+    participant ScmsDB as ScmsDbContext (Tenants table)
+    participant Cache as IMemoryCache
+    participant EnvVar as Environment Variables
+
+    Note over FE: ngOnInit — app bootstrap
+    FE->>API: GET /api/tenant/v1/resolve<br/>Origin: http://localhost:4201
+    API->>ScmsDB: Tenants.FirstOrDefault(t => t.DomainUrl == origin && t.IsActive)
+    ScmsDB-->>API: Tenant { TenantCode: "clinica", Name: "Clinic A", ... }
+    API-->>FE: { tenantCode, name, logoUrl }
+    Note over FE: Store tenantCode in memory/service
+
+    FE->>API: GET /api/tenant/v1/departments<br/>x-tenant-code: clinica
+    API->>API: TenantResolverMiddleware
+    API->>Cache: tenantctx::CLINICA?
+    alt Cache miss
+        API->>EnvVar: SCMS_CLINICA_SHARED_CONNECTION
+        EnvVar-->>API: "Host=localhost;..."
+        API->>ScmsDB: Tenants.Any(code == "clinica" && IsActive)
+        ScmsDB-->>API: true
+        API->>Cache: Set(tenantctx::CLINICA, state)
+    end
+    Note over API: ITenantContext populated
+    API->>API: TenantDbContext uses ConnectionString
+    API-->>FE: 200 { departments... }
+```
+
+---
+
+## Part 1 — Tenant Resolution (`/resolve` Endpoint)
+
+### What it does
+
+The Angular tenant app calls `GET /api/tenant/v1/resolve` on startup (`ngOnInit`). The API reads the `Origin` header (or `Referer` fallback), matches it against the `DomainUrl` column in the `Tenants` table, and returns the tenant's public details.
+
+> [!NOTE]
+> The `/resolve` endpoint is **unauthenticated** and **does not require `x-tenant-code`** — it's the endpoint that _provides_ the tenant code.
+
+### How the frontend uses it
+
+```typescript
+// Angular — AppComponent or APP_INITIALIZER
+ngOnInit() {
+  this.http.get('/api/tenant/v1/resolve').subscribe(res => {
+    this.tenantService.setCode(res.data.tenantCode);
+    // All subsequent HTTP calls add: x-tenant-code: <tenantCode>
+  });
+}
+```
+
+### Files involved
+
+#### [NEW] `SCMS.Application/Interfaces/ITenantRepository.cs`
+
+```csharp
+public interface ITenantRepository
+{
+    Task<Tenant?> FindByDomainUrlAsync(string domainUrl, CancellationToken ct = default);
+    Task<bool> ExistsAndActiveAsync(string tenantCode, CancellationToken ct = default);
+}
+```
+
+#### [NEW] `SCMS.Application/Services/ITenantResolveService.cs`
+
+```csharp
+public interface ITenantResolveService
+{
+    Task<TenantResolveDto?> ResolveByOriginAsync(string originUrl, CancellationToken ct = default);
+}
+```
+
+#### [NEW] `SCMS.Application/Dtos/TenantResolveDto.cs`
+
+Returns only safe, public-facing tenant info:
+
+```csharp
+public class TenantResolveDto
+{
+    public string TenantCode { get; init; } = string.Empty;
+    public string Name { get; init; } = string.Empty;
+    public string? LogoUrl { get; init; }
+    public string? DomainUrl { get; init; }
+}
+```
+
+#### [NEW] `SCMS.Application/Services/TenantResolveService.cs`
+
+Queries `ITenantRepository.FindByDomainUrlAsync(origin)`, maps to `TenantResolveDto`.
+
+#### [NEW] `SCMS.Infrastructure/Repositories/TenantRepository.cs`
+
+Implements `ITenantRepository` using `ScmsDbContext`.
+
+#### [NEW] `SCMS.API/Controllers/Tenant/TenantResolveController.cs`
+
+```csharp
+[Route("api/tenant/v1/[controller]")]
+[ApiController]
+public class ResolveController : ControllerBase
+{
+    [HttpGet]
+    public async Task<ActionResult<ApiResponse<TenantResolveDto>>> Resolve(...)
+    {
+        var origin = Request.Headers["Origin"].FirstOrDefault()
+                  ?? Request.Headers["Referer"].FirstOrDefault();
+        // normalize: strip trailing slash, lowercase
+        // call ITenantResolveService.ResolveByOriginAsync(origin)
+        // return 404 if not found
+    }
+}
+```
+
+---
+
+## Part 2 — Seed the Master Tenant (`vktech`)
+
+The `vktech` tenant (owner) needs to exist in the `Tenants` table so the SCMS master app (:4200) can also resolve itself.
+
+#### [MODIFY] [ScmsDataSeed.cs](file:///d:/Others/Joker/SCMS/scms_backend/SCMS.Infrastructure/Persistence/Seed/ScmsDataSeed.cs)
+
+Add a fixed-GUID `Plan` seed for the master tenant and the `vktech` tenant record:
+
+```csharp
+// Master plan (internal)
+public static readonly Guid MasterPlanId = Guid.Parse("C3333333-0000-0000-0000-000000000001");
+public static readonly Guid MasterTenantId = Guid.Parse("D4444444-0000-0000-0000-000000000001");
+
+public static Plan MasterPlan => new Plan
+{
+    Id = MasterPlanId,
+    PlanName = "Master",
+    MaxUsers = int.MaxValue,
+    MaxEmployees = int.MaxValue,
+    PriceMonthly = 0,
+    PriceYearly = 0,
+    BillingCycle = BillingCycle.Yearly,
+    IsActive = true,
+};
+
+public static Tenant VkTechTenant => new Tenant
+{
+    Id = MasterTenantId,
+    TenantCode = "vktech",
+    Name = "VK Tech (Owner)",
+    ContactPersonName = "Admin",
+    Email = "admin@vktech.com",
+    MobilePhone = "0000000000",
+    DomainUrl = "http://localhost:4200",    // dev
+    IsActive = true,
+    PlanId = MasterPlanId,
+    CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+    CreatedBy = "System"
+};
+```
+
+#### [MODIFY] [ScmsDbContext.cs](file:///d:/Others/Joker/SCMS/scms_backend/SCMS.Infrastructure/Persistence/ScmsDbContext.cs)
+
+Add `HasData` calls in `ConfigPlan` and `ConfigTenant`:
+
+```diff
+  private static void ConfigPlan(EntityTypeBuilder<Plan> e)
+  {
++     e.HasData(DataSeed.MasterPlan);
+  }
+
+  private static void ConfigTenant(EntityTypeBuilder<Tenant> e)
+  {
+      e.ToTable(tb => { ... });
++     e.HasIndex(t => t.TenantCode).IsUnique();
++     e.HasIndex(t => t.DomainUrl).IsUnique().HasFilter("domain_url IS NOT NULL");
++     e.HasData(DataSeed.VkTechTenant);
+  }
+```
+
+> [!IMPORTANT]
+> After these changes, you'll need a new SCMS migration:
+> ```bash
+> dotnet ef migrations add SeedMasterTenant --context ScmsDbContext --output-dir Migrations/SCMS --project SCMS.Infrastructure --startup-project SCMS.API
+> dotnet ef database update --context ScmsDbContext --project SCMS.Infrastructure --startup-project SCMS.API
+> ```
+
+---
+
+## Part 3 — Naming Convention & Validation
+
+### Tenant Code → Environment Variable Mapping
+
+| Tenant Code | Env Var Name |
+|---|---|
+| `clinica` | `SCMS_CLINICA_SHARED_CONNECTION` |
+| `clinic-b` | `SCMS_CLINIC_B_SHARED_CONNECTION` |
+| `vktech` | `SCMS_VKTECH_SHARED_CONNECTION` |
+
+**Rule**: `code.ToUpperInvariant().Replace("-", "_")` → `SCMS_{result}_SHARED_CONNECTION`
+
+### Validation
+
+The existing DB constraint (`ck_tenant_code_alnum_hyphen`) already enforces:
+- Alphanumeric + hyphens only
+- No leading/trailing hyphens
+- No double hyphens
+
+We add **application-level validation** in `TenantContext.ResolveAsync`:
+
+```csharp
+private static readonly Regex ValidTenantCode = new(
+    @"^(?!-)(?!.*--)[A-Za-z0-9-]+(?<!-)$",
+    RegexOptions.Compiled);
+
+// in ResolveAsync:
+if (!ValidTenantCode.IsMatch(rawCode))
+    throw new BadRequestException($"Invalid tenant code format: '{rawCode}'");
+```
+
+This matches the DB constraint exactly, so invalid codes are rejected before any env-var/DB lookup.
+
+---
+
+## Part 4 — `ITenantContext` & Middleware
+
+### Interface — `ITenantContext`
+
+#### [NEW] `SCMS.Shared/Models/ITenantContext.cs`
+
+```csharp
+public interface ITenantContext
+{
+    string TenantCode { get; }
+    string ConnectionString { get; }
+    bool IsOwner { get; }
+    Task ResolveAsync(string tenantCode, CancellationToken ct = default);
+}
+```
+
+### Implementation — `TenantContext`
+
+#### [NEW] `SCMS.Infrastructure/Services/TenantContext.cs`
+
+Lives in **Infrastructure** (needs `IMemoryCache`, `IConfiguration`, `ITenantRepository`).
+
+```csharp
+public sealed class TenantContext : ITenantContext
+{
+    public string TenantCode { get; private set; } = "";
+    public string ConnectionString { get; private set; } = "";
+    public bool IsOwner { get; private set; }
+
+    // Dependencies: IMemoryCache, IConfiguration, ITenantRepository, ILogger
+
+    public async Task ResolveAsync(string tenantCode, CancellationToken ct)
+    {
+        // 1. Validate format (regex)
+        // 2. Normalize: trim, lowercase for DB lookup
+        // 3. Build env var name: SCMS_{CODE.ToUpper().Replace("-","_")}_SHARED_CONNECTION
+        // 4. Cache check (key: "tenantctx::{NORMALIZED}")
+        // 5. On miss:
+        //    a. Read env var → fail if missing
+        //    b. Verify tenant active in DB via ITenantRepository.ExistsAndActiveAsync
+        //    c. Determine IsOwner: tenantCode == config["OwnerTenantCode"]
+        //    d. Cache with 30min absolute / 10min sliding
+        // 6. Populate properties
+    }
+}
+```
+
+### Middleware — `TenantResolverMiddleware`
+
+#### [NEW] `SCMS.Shared/Middlewares/TenantResolverMiddleware.cs`
+
+```csharp
+public class TenantResolverMiddleware
+{
+    private readonly RequestDelegate _next;
+
+    public async Task InvokeAsync(HttpContext context, ITenantContext tenantContext)
+    {
+        var path = context.Request.Path.Value?.ToLowerInvariant() ?? "";
+
+        // ── Skip rules ──
+        // 1. Owner routes: starts with "/api/owner/"
+        // 2. Tenant resolve: starts with "/api/tenant/v1/resolve" (or exact match)
+        // 3. Swagger/Scalar/OpenAPI paths
+        if (ShouldSkip(path))
+        {
+            await _next(context);
+            return;
+        }
+
+        // ── Extract tenant code ──
+        var tenantCode = context.Request.Headers["x-tenant-code"].FirstOrDefault();
+        if (string.IsNullOrWhiteSpace(tenantCode))
+        {
+            context.Response.StatusCode = 400;
+            // write ErrorResponse JSON
+            return;
+        }
+
+        await tenantContext.ResolveAsync(tenantCode, context.RequestAborted);
+        await _next(context);
+    }
+
+    private static bool ShouldSkip(string path) =>
+        path.StartsWith("/api/owner/") ||
+        path.StartsWith("/api/tenant/v1/resolve") ||
+        path.StartsWith("/openapi") ||
+        path.StartsWith("/scalar");
+}
+```
+
+> [!NOTE]
+> **Route prefix**: Owner controllers use `api/owner/v1/...`, so skipping anything starting with `/api/owner/` covers all current and future owner routes. The `/resolve` endpoint also skips because it's the one that _provides_ the tenant code.
+
+---
+
+## Part 5 — Activate `TenantDbContext` Runtime Path
+
+#### [MODIFY] [DbContextExtension.cs](file:///d:/Others/Joker/SCMS/scms_backend/SCMS.Infrastructure/Extensions/DbContextExtension.cs)
+
+Uncomment the `ITenantContext` runtime block (lines 64–72):
+
+```diff
+- // TODO: Uncomment once ITenantContext / TenantResolverMiddleware is implemented.
+- // var tenant = sp.GetService<ITenantContext>();
+- // var cs = tenant?.ConnectionString;
+- // if (!string.IsNullOrWhiteSpace(cs))
+- // {
+- //     Configure(opt, cs, migrationAssembly, "__ef_migrations_history_tenant");
+- //     return;
+- // }
++ var tenant = sp.GetService<ITenantContext>();
++ var cs = tenant?.ConnectionString;
++ if (!string.IsNullOrWhiteSpace(cs))
++ {
++     Configure(opt, cs, migrationAssembly, "__ef_migrations_history_tenant");
++     return;
++ }
+```
+
+---
+
+## Part 6 — Per-Tenant JWT Isolation (Bonus)
+
+### The Problem
+
+Currently, **all tenants share the same JWT secret/issuer/audience** (`Jwt:Tenant` in appsettings). This means a token issued for Clinic A works for Clinic B. We need **per-tenant JWT isolation**.
+
+### Solution: Environment-Variable-Based JWT Config
+
+Same pattern as connection strings — each tenant gets its own JWT secrets via env vars:
+
+| Env Var | Example Value |
+|---|---|
+| `SCMS_CLINICA_JWT_SECRET` | `<64-byte hex>` |
+| `SCMS_CLINICA_JWT_ISSUER` | `SCMS_CLINICA` |
+| `SCMS_CLINICA_JWT_AUDIENCE` | `SCMS_CLINICA_API` |
+
+If a tenant's env vars are **not set**, fall back to the global `Jwt:Tenant` settings from appsettings (backward compatible).
+
+### Implementation
+
+#### Extend `ITenantContext` with JWT fields
+
+```csharp
+public interface ITenantContext
+{
+    string TenantCode { get; }
+    string ConnectionString { get; }
+    bool IsOwner { get; }
+
+    // JWT isolation
+    string JwtSecretKey { get; }
+    string JwtIssuer { get; }
+    string JwtAudience { get; }
+
+    Task ResolveAsync(string tenantCode, CancellationToken ct = default);
+}
+```
+
+During `ResolveAsync`, after resolving the connection string:
+
+```csharp
+// Per-tenant JWT (fallback to global Jwt:Tenant config)
+JwtSecretKey = Environment.GetEnvironmentVariable($"SCMS_{envCode}_JWT_SECRET")
+            ?? _config["Jwt:Tenant:SecretKey"]!;
+JwtIssuer    = Environment.GetEnvironmentVariable($"SCMS_{envCode}_JWT_ISSUER")
+            ?? _config["Jwt:Tenant:Issuer"]!;
+JwtAudience  = Environment.GetEnvironmentVariable($"SCMS_{envCode}_JWT_AUDIENCE")
+            ?? _config["Jwt:Tenant:Audience"]!;
+```
+
+#### Custom `JwtBearerEvents` for Dynamic Validation
+
+Instead of static `TokenValidationParameters`, use a custom `OnTokenValidated` / `OnMessageReceived` event handler that reads the current `ITenantContext` and validates the token against that tenant's specific issuer/key/audience:
+
+#### [MODIFY] [AuthenticationExtension.cs](file:///d:/Others/Joker/SCMS/scms_backend/SCMS.Infrastructure/Extensions/AuthenticationExtension.cs)
+
+```diff
+  services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
+-     .Configure<IOptions<JwtSettings>>((opts, tenantJwtOptions) =>
+-     {
+-         var settings = tenantJwtOptions.Value;
+-         opts.TokenValidationParameters = new TokenValidationParameters
+-         {
+-             ValidIssuer = settings.Issuer,
+-             ValidAudience = settings.Audience,
+-             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(settings.SecretKey)),
+-             ...
+-         };
+-     });
++     .Configure((opts) =>
++     {
++         // Defer validation to per-request tenant context
++         opts.TokenValidationParameters = new TokenValidationParameters
++         {
++             ValidateIssuer = false,    // we validate manually
++             ValidateAudience = false,  // we validate manually
++             ValidateIssuerSigningKey = false,
++             ValidateLifetime = true,
++             ClockSkew = TimeSpan.Zero,
++             // Provide a dummy key (required by framework) — real validation below
++             IssuerSigningKeyResolver = (token, secToken, kid, tvp) =>
++             {
++                 // Resolved dynamically per-request
++                 return Array.Empty<SecurityKey>();
++             }
++         };
++
++         opts.Events = new JwtBearerEvents
++         {
++             OnMessageReceived = async context =>
++             {
++                 var tenantCtx = context.HttpContext.RequestServices.GetService<ITenantContext>();
++                 if (tenantCtx == null || string.IsNullOrEmpty(tenantCtx.JwtSecretKey))
++                     return; // let default pipeline handle
++
++                 // Override TVP with tenant-specific values
++                 context.Options.TokenValidationParameters = new TokenValidationParameters
++                 {
++                     ValidIssuer = tenantCtx.JwtIssuer,
++                     ValidAudience = tenantCtx.JwtAudience,
++                     IssuerSigningKey = new SymmetricSecurityKey(
++                         Encoding.UTF8.GetBytes(tenantCtx.JwtSecretKey)),
++                     ValidateIssuer = true,
++                     ValidateAudience = true,
++                     ValidateLifetime = true,
++                     ValidateIssuerSigningKey = true,
++                     ClockSkew = TimeSpan.Zero
++                 };
++             }
++         };
++     });
+```
+
+> [!WARNING]
+> **The `TenantResolverMiddleware` must run BEFORE `UseAuthentication()`** in the pipeline. This is critical because by the time JWT validation fires, `ITenantContext` must already be populated with the tenant's secret/issuer/audience.
+
+### Environment.Development.cmd additions
+
+```cmd
+REM ── Per-tenant JWT (optional — falls back to Jwt:Tenant in appsettings) ───
+SETX SCMS_CLINICA_JWT_SECRET "unique-64-byte-hex-for-clinica..."
+SETX SCMS_CLINICA_JWT_ISSUER "SCMS_CLINICA"
+SETX SCMS_CLINICA_JWT_AUDIENCE "SCMS_CLINICA_API"
+```
+
+---
+
+## Part 7 — DI Registration & Pipeline Wiring
+
+#### [MODIFY] [DependencyInjection.cs](file:///d:/Others/Joker/SCMS/scms_backend/SCMS.Infrastructure/DependencyInjection.cs)
+
+```diff
++ services.AddMemoryCache();
++ services.AddScoped<ITenantContext, TenantContext>();
+```
+
+#### [MODIFY] [RepositoryExtension.cs](file:///d:/Others/Joker/SCMS/scms_backend/SCMS.Infrastructure/Extensions/RepositoryExtension.cs)
+
+```diff
++ services.AddScoped<ITenantRepository, TenantRepository>();
+```
+
+#### [MODIFY] [Application/DependencyInjection.cs](file:///d:/Others/Joker/SCMS/scms_backend/SCMS.Application/DependencyInjection.cs)
+
+```diff
++ services.AddScoped<ITenantResolveService, TenantResolveService>();
+```
+
+#### [MODIFY] [MiddlewareExtension.cs](file:///d:/Others/Joker/SCMS/scms_backend/SCMS.Infrastructure/Extensions/MiddlewareExtension.cs)
+
+```diff
++ public static IApplicationBuilder UseTenantResolver(this IApplicationBuilder app)
++     => app.UseMiddleware<TenantResolverMiddleware>();
+```
+
+#### [MODIFY] [Program.cs](file:///d:/Others/Joker/SCMS/scms_backend/SCMS.API/Program.cs)
+
+```diff
+  app.UseGlobalExceptionHandler();
++ app.UseTenantResolver();         // ← MUST be before auth
+  app.UseAuthentication();
+  app.UseAuthorization();
+```
+
+---
+
+## Complete File Summary
+
+| # | Layer | File | Action | Purpose |
+|---|---|---|---|---|
+| 1 | Shared | `Models/ITenantContext.cs` | NEW | Interface (TenantCode, ConnStr, IsOwner, JWT fields) |
+| 2 | Shared | `Middlewares/TenantResolverMiddleware.cs` | NEW | Reads `x-tenant-code`, calls ResolveAsync, skips owner + resolve |
+| 3 | Application | `Interfaces/ITenantRepository.cs` | NEW | FindByDomainUrl + ExistsAndActive |
+| 4 | Application | `Dtos/TenantResolveDto.cs` | NEW | Public tenant info for /resolve response |
+| 5 | Application | `Services/ITenantResolveService.cs` | NEW | Service interface for resolve logic |
+| 6 | Application | `Services/TenantResolveService.cs` | NEW | Service implementation |
+| 7 | Application | `DependencyInjection.cs` | MODIFY | Register TenantResolveService |
+| 8 | Infrastructure | `Repositories/TenantRepository.cs` | NEW | ScmsDbContext queries |
+| 9 | Infrastructure | `Services/TenantContext.cs` | NEW | ITenantContext impl with cache + env vars + JWT |
+| 10 | Infrastructure | `Persistence/Seed/ScmsDataSeed.cs` | MODIFY | Add MasterPlan + vktech tenant seed |
+| 11 | Infrastructure | `Persistence/ScmsDbContext.cs` | MODIFY | HasData for plan + tenant, unique indexes |
+| 12 | Infrastructure | `Extensions/DbContextExtension.cs` | MODIFY | Uncomment ITenantContext runtime path |
+| 13 | Infrastructure | `Extensions/MiddlewareExtension.cs` | MODIFY | Add UseTenantResolver() |
+| 14 | Infrastructure | `Extensions/RepositoryExtension.cs` | MODIFY | Register ITenantRepository |
+| 15 | Infrastructure | `Extensions/AuthenticationExtension.cs` | MODIFY | Dynamic per-tenant JWT validation |
+| 16 | Infrastructure | `DependencyInjection.cs` | MODIFY | AddMemoryCache + ITenantContext |
+| 17 | API | `Controllers/Tenant/ResolveController.cs` | NEW | GET /api/tenant/v1/resolve |
+| 18 | API | `Program.cs` | MODIFY | Wire UseTenantResolver() before auth |
+| 19 | API | `Environment.Development.cmd` | MODIFY | Add per-tenant JWT env vars (optional) |
+
+---
+
+## Open Questions
+
+> [!IMPORTANT]
+> **1. DomainUrl matching strategy:** For `/resolve`, should we match `DomainUrl` exactly (e.g., `http://localhost:4201`) or do a **contains/prefix** match? I recommend exact match after normalizing (strip trailing slash, lowercase). Confirm?
+
+> [!IMPORTANT]
+> **2. `/resolve` caching:** Should the `/resolve` endpoint response also be cached (in-memory by origin URL) to avoid DB hits on every app bootstrap? The tenant middleware cache already handles subsequent requests, but `/resolve` itself hits the DB each time. I recommend adding a short cache (5 min) for resolve lookups.
+
+> [!IMPORTANT]
+> **3. Per-tenant JWT — Phase 1 or Phase 2?** The per-tenant JWT isolation is a significant change to the auth pipeline. Should we implement it now as part of this PR, or defer it to a follow-up? The multi-tenant middleware works perfectly fine with the current shared JWT config — per-tenant JWT is an isolation enhancement. My recommendation: implement the infrastructure (env var resolution + `ITenantContext` JWT fields) now, but keep the `AuthenticationExtension` dynamic validation as a Phase 2 if you want to reduce risk.
+
+---
+
+## Verification Plan
+
+### Build
+```bash
+dotnet build SCMS.slnx
+```
+
+### Migration
+```bash
+dotnet ef migrations add SeedMasterTenant --context ScmsDbContext --output-dir Migrations/SCMS --project SCMS.Infrastructure --startup-project SCMS.API
+dotnet ef database update --context ScmsDbContext --project SCMS.Infrastructure --startup-project SCMS.API
+```
+
+### Manual Testing
+
+| # | Test Case | Expected |
+|---|---|---|
+| 1 | `GET /api/tenant/v1/resolve` from Origin `http://localhost:4200` | Returns `{ tenantCode: "vktech", name: "VK Tech (Owner)" }` |
+| 2 | `GET /api/tenant/v1/resolve` from Origin `http://localhost:4201` | Returns clinica tenant details (after seeding) |
+| 3 | `GET /api/tenant/v1/resolve` from unknown origin | 404 |
+| 4 | `GET /api/tenant/v1/departments` without `x-tenant-code` | 400 |
+| 5 | `GET /api/tenant/v1/departments` with `x-tenant-code: clinica` | Resolves, uses clinica's DB |
+| 6 | `GET /api/tenant/v1/departments` with `x-tenant-code: !!!invalid` | 400 (format validation) |
+| 7 | `POST /api/owner/v1/auth/login` without `x-tenant-code` | 200 (skips tenant resolution) |
+| 8 | `GET /api/tenant/v1/departments` with `x-tenant-code: vktech` | Resolves, `IsOwner = true` |

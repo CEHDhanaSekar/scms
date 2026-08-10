@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using scms.Application.Dtos.Tenant;
 using scms.Application.Interfaces.Tenant;
@@ -8,7 +7,7 @@ namespace scms.API.Controllers.Tenant;
 
 [Route("api/tenant/v1/[controller]")]
 [ApiController]
-[Authorize]
+//[Authorize]
 public class DepartmentController : ControllerBase
 {
     private readonly IDepartmentService _departmentService;
@@ -45,7 +44,7 @@ public class DepartmentController : ControllerBase
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateDepartmentDto dto, CancellationToken ct)
     {
         if (id != dto.Id) return BadRequest("ID mismatch");
-        
+
         var updatedBy = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "System";
         try
         {

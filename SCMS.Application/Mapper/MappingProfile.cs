@@ -1,6 +1,8 @@
 using AutoMapper;
 using scms.Application.Dtos;
 using scms.Application.DTOs;
+using scms.Domain.Entities.SCMS;
+
 namespace scms.Application.Mapper;
 
 public class MappingProfile : Profile
@@ -19,10 +21,14 @@ public class MappingProfile : Profile
         CreateMap<CreatePlanDto, Plan>();
         CreateMap<UpdatePlanDto, Plan>();
 
+        CreateMap<Tenant, TenantDto>();
+        CreateMap<CreateTenantDto, Tenant>();
+        CreateMap<UpdateTenantDto, Tenant>();
+
         CreateMap<PlanModule, PlanModuleDto>();
         CreateMap<CreatePlanModuleDto, PlanModule>();
         CreateMap<UpdatePlanModuleDto, PlanModule>();
 
-        CreateMap<scms.Domain.Entities.SCMS.OwnerUser, OwnerUserDto>();
+        CreateMap<OwnerUser, OwnerUserDto>();
     }
 }
