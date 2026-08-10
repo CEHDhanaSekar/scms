@@ -1,5 +1,4 @@
 using System.Security.Cryptography;
-using scms.Application.Interfaces;
 
 namespace scms.Infrastructure.Services;
 

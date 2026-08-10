@@ -1,5 +1,7 @@
+using Serilog.Context;
 using Microsoft.AspNetCore.Http;
 using scms.Shared.Models;
+using static Serilog.Context.LogContext;
 using System.Text.Json;
 
 namespace scms.Shared.Middlewares;
@@ -49,7 +51,30 @@ public class TenantResolverMiddleware
         }
 
         await tenantContext.ResolveAsync(tenantCode.Trim(), context.RequestAborted);
-        await _next(context);
+
+        var isMaster = tenantContext.IsOwner;
+        var norm = tenantContext.TenantCode ?? tenantCode.Trim();
+        var logCode = isMaster ? "MASTER" : norm;
+        var tenantConn = tenantContext.ConnectionString ?? string.Empty;
+
+        using (LogContext.PushProperty("TenantCode", logCode))
+        using (LogContext.PushProperty("TenantDb", logCode))
+        {
+            IDisposable? tenantConnScope = null;
+            if (!isMaster && !string.IsNullOrWhiteSpace(tenantConn))
+            {
+                tenantConnScope = LogContext.PushProperty("TenantConn", tenantConn);
+            }
+
+            try
+            {
+                await _next(context);
+            }
+            finally
+            {
+                tenantConnScope?.Dispose();
+            }
+        }
     }
 
     private static bool ShouldSkip(string path) =>
