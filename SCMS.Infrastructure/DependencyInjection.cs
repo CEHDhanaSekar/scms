@@ -25,6 +25,11 @@ public static class DependencyInjection
         // Falls back to TENANT_DESIGN_CONN for EF design-time tooling.
         services.AddTenantDbContext(AssemblyName);
 
+        services.AddScoped<ITenantMigrator, TenantMigrator>();
+        
+        services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));
+        services.AddScoped<Application.Services.IEmailSender, MailKitEmailSender>();
+
         services.AddRepositories();
         services.AddJwtAuthentication(configuration);
         services.AddAuthServices();
