@@ -1,12 +1,11 @@
-using Serilog;
+using FluentValidation.AspNetCore;
 using Scalar.AspNetCore;
 using scms.Application;
 using scms.Infrastructure;
+using scms.Infrastructure.Data;
 using scms.Infrastructure.Extensions;
 using SCMS.API.Extensions;
-using ValidationDI = scms.Application.DependencyInjection;
-
-using FluentValidation.AspNetCore;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,6 +24,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddCustomCors(builder.Configuration);
 
 var app = builder.Build();
+
+app.MigrateDatabase<ScmsDbContext>();
 
 app.UseSerilogRequestLogging();
 
