@@ -6,15 +6,15 @@ using System.Text.Json;
 
 namespace scms.Shared.Middlewares;
 
-/// <summary>
-/// Extracts <c>x-tenant-code</c> from the request header and calls
-/// <see cref="ITenantContext.ResolveAsync"/> to populate tenant state for the request.
-///
-/// Skip paths:
-///   - /api/owner/   (owner/master routes — no tenant needed)
-///   - /api/tenant/v1/resolve  (provides the tenant code itself)
-///   - /openapi, /scalar       (tooling)
-/// </summary>
+// / <summary>
+// / Extracts <c>x-tenant-code</c> from the request header and calls
+// / <see cref="ITenantContext.ResolveAsync"/> to populate tenant state for the request.
+// /
+// / Skip paths:
+// /   - /api/owner/   (owner/master routes — no tenant needed)
+// /   - /api/tenant/v1/resolve  (provides the tenant code itself)
+// /   - /openapi, /scalar       (tooling)
+// / </summary>
 public class TenantResolverMiddleware
 {
     private readonly RequestDelegate _next;
