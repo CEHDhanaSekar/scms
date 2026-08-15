@@ -1,4 +1,4 @@
-﻿using SCMS.Shared.Entities;
+using SCMS.Shared.Entities;
 
 namespace scms.Domain.Entities.SCMS;
 
@@ -18,6 +18,7 @@ public class Tenant : AuditableEntity
     public string? DomainUrl { get; set; }
     public string? LogoUrl { get; set; }
     public bool IsActive { get; set; } = true;
+    public TenantStatus Status { get; set; } = TenantStatus.Pending;
 
     public Guid PlanId { get; set; }
     public Plan Plan { get; set; } = null!;

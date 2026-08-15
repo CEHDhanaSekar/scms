@@ -17,6 +17,7 @@ public class TenantDto
     public string? DomainUrl { get; set; }
     public string? LogoUrl { get; set; }
     public bool IsActive { get; set; }
+    public scms.Domain.Entities.SCMS.TenantStatus Status { get; set; }
     public Guid PlanId { get; set; }
 }
 
@@ -54,5 +55,6 @@ public class UpdateTenantDto
     public string? DomainUrl { get; set; }
     public string? LogoUrl { get; set; }
     public bool IsActive { get; set; }
+    public scms.Domain.Entities.SCMS.TenantStatus Status { get; set; }
     public Guid PlanId { get; set; }
 }

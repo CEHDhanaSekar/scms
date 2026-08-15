@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using scms.Domain.Entities.SCMS;
 using scms.Domain.Entities.Tenant;
+using TenantPermission = scms.Domain.Entities.Tenant.Permission;
 
 namespace scms.Infrastructure.Persistence;
 
@@ -9,7 +11,7 @@ public class TenantDbContext(DbContextOptions<TenantDbContext> options) : DbCont
     public DbSet<Department> Departments { get; set; }
     public DbSet<Specialization> Specializations { get; set; }
     public DbSet<Employee> Employees { get; set; }
-    public DbSet<Permission> Permissions { get; set; }
+    public DbSet<TenantPermission> Permissions { get; set; }
     public DbSet<Role> Roles { get; set; }
     public DbSet<RolePermission> RolePermissions { get; set; }
     public DbSet<User> Users { get; set; }
@@ -22,7 +24,7 @@ public class TenantDbContext(DbContextOptions<TenantDbContext> options) : DbCont
         modelBuilder.Entity<Department>(ConfigDepartment);
         modelBuilder.Entity<Specialization>(ConfigSpecialization);
         modelBuilder.Entity<Employee>(ConfigEmployee);
-        modelBuilder.Entity<Permission>(ConfigPermission);
+        modelBuilder.Entity<TenantPermission>(ConfigPermission);
         modelBuilder.Entity<Role>(ConfigRole);
         modelBuilder.Entity<RolePermission>(ConfigRolePermission);
         modelBuilder.Entity<User>(ConfigUser);
@@ -43,7 +45,7 @@ public class TenantDbContext(DbContextOptions<TenantDbContext> options) : DbCont
     {
     }
 
-    private static void ConfigPermission(EntityTypeBuilder<Permission> e)
+    private static void ConfigPermission(EntityTypeBuilder<TenantPermission> e)
     {
     }
 
