@@ -1,6 +1,6 @@
 namespace scms.Application.Dtos.Tenant;
 
-public class PermissionDto
+public class TenantPermissionDto
 {
     public Guid Id { get; set; }
     public string PermissionKey { get; set; } = string.Empty;

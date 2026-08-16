@@ -1,15 +1,15 @@
 using Microsoft.EntityFrameworkCore;
 using scms.Application.Interfaces.Tenant;
 using scms.Infrastructure.Persistence;
-using TenantPermission = scms.Domain.Entities.Tenant.Permission;
+using scms.Domain.Entities.Tenant;
 
 namespace scms.Infrastructure.Repositories.Tenant;
 
-public class PermissionRepository : IPermissionRepository
+public class TenantPermissionRepository : ITenantPermissionRepository
 {
     private readonly TenantDbContext _context;
 
-    public PermissionRepository(TenantDbContext context)
+    public TenantPermissionRepository(TenantDbContext context)
     {
         _context = context;
     }

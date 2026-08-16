@@ -17,6 +17,10 @@ public class MappingProfile : Profile
         CreateMap<CreateModulePermissionDto, ModulePermission>();
         CreateMap<UpdateModulePermissionDto, ModulePermission>();
 
+        CreateMap<Permission, PermissionDto>();
+        CreateMap<CreatePermissionDto, Permission>();
+        CreateMap<UpdatePermissionDto, Permission>();
+
         CreateMap<Plan, PlanDto>();
         CreateMap<CreatePlanDto, Plan>();
         CreateMap<UpdatePlanDto, Plan>();

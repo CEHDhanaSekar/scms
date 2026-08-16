@@ -32,6 +32,7 @@ public class ModuleService(IModuleRepository moduleRepository, IMapper mapper) :
     public async Task<ModuleDto> CreateModuleAsync(CreateModuleDto dto)
     {
         var module = mapper.Map<Module>(dto);
+        module.ModuleKey = dto.ModuleName.Trim().ToUpper().Replace(" ", "_");
         var created = await moduleRepository.AddAsync(module);
         return mapper.Map<ModuleDto>(created);
     }

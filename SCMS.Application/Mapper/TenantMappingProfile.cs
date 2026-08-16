@@ -30,7 +30,7 @@ public class TenantMappingProfile : Profile
         CreateMap<CreateRoleDto, Role>();
         CreateMap<UpdateRoleDto, Role>();
 
-        // Permission (Uses SCMS domain permission)
-        CreateMap<Permission, PermissionDto>();
+        // Permission
+        CreateMap<TenantPermission, TenantPermissionDto>();
     }
 }

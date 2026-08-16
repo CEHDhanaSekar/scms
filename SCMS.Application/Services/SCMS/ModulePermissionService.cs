@@ -14,7 +14,11 @@ public interface IModulePermissionService
     Task<bool> DeleteModulePermissionAsync(Guid id);
 }
 
-public class ModulePermissionService(IModulePermissionRepository repository, IMapper mapper) : IModulePermissionService
+public class ModulePermissionService(
+    IModulePermissionRepository repository,
+    IModuleRepository moduleRepository,
+    IPermissionRepository permissionRepository,
+    IMapper mapper) : IModulePermissionService
 {
     public async Task<IEnumerable<ModulePermissionDto>> GetAllModulePermissionsAsync()
     {
@@ -31,7 +35,15 @@ public class ModulePermissionService(IModulePermissionRepository repository, IMa
 
     public async Task<ModulePermissionDto> CreateModulePermissionAsync(CreateModulePermissionDto dto)
     {
+        var module = await moduleRepository.GetByIdAsync(dto.ModuleId);
+        if (module == null) throw new NotFoundException("Module not found");
+
+        var permission = await permissionRepository.GetByIdAsync(dto.PermissionId);
+        if (permission == null) throw new NotFoundException("Permission not found");
+
         var entity = mapper.Map<ModulePermission>(dto);
+        entity.PermissionKey = $"{module.ModuleKey}_{permission.PermissionKey}";
+
         var created = await repository.AddAsync(entity);
         return mapper.Map<ModulePermissionDto>(created);
     }

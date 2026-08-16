@@ -15,6 +15,7 @@ public static class DependencyInjection
         // SCMS Services
         services.AddScoped<IModuleService, ModuleService>();
         services.AddScoped<IModulePermissionService, ModulePermissionService>();
+        services.AddScoped<scms.Application.Services.SCMS.IPermissionService, scms.Application.Services.SCMS.PermissionService>();
         services.AddScoped<IPlanService, PlanService>();
         services.AddScoped<IPlanModuleService, PlanModuleService>();
         services.AddScoped<ITenantResolveService, TenantResolveService>();
@@ -26,7 +27,7 @@ public static class DependencyInjection
         services.AddScoped<IEmployeeService, EmployeeService>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IRoleService, RoleService>();
-        services.AddScoped<IPermissionService, PermissionService>();
+        services.AddScoped<ITenantPermissionService, TenantPermissionService>();
 
         // Validators
         // FluentValidation automatically scanned in API layer usually, but we can register if needed.

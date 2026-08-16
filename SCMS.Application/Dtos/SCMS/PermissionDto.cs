@@ -1,24 +1,24 @@
 namespace scms.Application.Dtos.SCMS;
 
-public class ModuleDto
+public class PermissionDto
 {
     public Guid Id { get; set; }
-    public string ModuleKey { get; set; } = string.Empty;
-    public string ModuleName { get; set; } = string.Empty;
+    public string PermissionKey { get; set; } = string.Empty;
+    public string PermissionName { get; set; } = string.Empty;
     public string? Description { get; set; }
     public bool IsActive { get; set; }
 }
 
-public class CreateModuleDto
+public class CreatePermissionDto
 {
-    public string ModuleName { get; set; } = string.Empty;
+    public string PermissionName { get; set; } = string.Empty;
     public string? Description { get; set; }
     public bool IsActive { get; set; } = true;
 }
 
-public class UpdateModuleDto
+public class UpdatePermissionDto
 {
-    public string ModuleName { get; set; } = string.Empty;
+    public string PermissionName { get; set; } = string.Empty;
     public string? Description { get; set; }
     public bool IsActive { get; set; }
 }

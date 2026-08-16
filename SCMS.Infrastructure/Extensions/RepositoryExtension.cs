@@ -12,6 +12,7 @@ public static class RepositoryExtension
     {
         services.AddScoped<IModuleRepository, ModuleRepository>();
         services.AddScoped<IModulePermissionRepository, ModulePermissionRepository>();
+        services.AddScoped<scms.Application.Interfaces.IPermissionRepository, scms.Infrastructure.Repositories.SCMS.PermissionRepository>();
         services.AddScoped<IPlanRepository, PlanRepository>();
         services.AddScoped<IPlanModuleRepository, PlanModuleRepository>();
         services.AddScoped<ITenantRepository, TenantRepository>();
@@ -21,7 +22,7 @@ public static class RepositoryExtension
         services.AddScoped<IEmployeeRepository, EmployeeRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IRoleRepository, RoleRepository>();
-        services.AddScoped<IPermissionRepository, PermissionRepository>();
+        services.AddScoped<ITenantPermissionRepository, TenantPermissionRepository>();
 
         return services;
     }

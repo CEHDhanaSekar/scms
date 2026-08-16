@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using scms.Application.Interfaces;
 using scms.Infrastructure.Persistence;
-using TenantPermission = scms.Domain.Entities.Tenant.Permission;
+using scms.Domain.Entities.Tenant;
 
 namespace scms.Infrastructure.Services;
 
