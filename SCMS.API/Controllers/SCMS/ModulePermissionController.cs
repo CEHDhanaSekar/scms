@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using scms.Application.DTOs;
+using scms.Application.Dtos.SCMS;
 using scms.Application.Services.SCMS;
 using scms.Shared.Models;
 

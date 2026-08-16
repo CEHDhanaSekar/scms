@@ -1,4 +1,4 @@
-namespace scms.Application.DTOs;
+namespace scms.Application.Dtos.SCMS;
 
 public class PlanDto
 {

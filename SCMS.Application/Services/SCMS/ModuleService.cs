@@ -1,5 +1,5 @@
 using AutoMapper;
-using scms.Application.DTOs;
+using scms.Application.Dtos.SCMS;
 using scms.Application.Interfaces;
 using SCMS.Shared.Exceptions;
 

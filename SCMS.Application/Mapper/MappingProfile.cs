@@ -1,5 +1,5 @@
 using AutoMapper;
-using scms.Application.Dtos;
+using scms.Application.Dtos.SCMS;
 using scms.Application.DTOs;
 using scms.Domain.Entities.SCMS;
 

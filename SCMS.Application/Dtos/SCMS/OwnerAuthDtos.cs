@@ -1,4 +1,4 @@
-namespace scms.Application.Dtos;
+namespace scms.Application.Dtos.SCMS;
 
 public record OwnerLoginRequestDto(
     string UsernameOrEmail,

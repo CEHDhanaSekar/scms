@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using scms.Application.Dtos;
+using scms.Application.Dtos.SCMS;
 using scms.Infrastructure.Services;
 using scms.Shared.Models;
 
