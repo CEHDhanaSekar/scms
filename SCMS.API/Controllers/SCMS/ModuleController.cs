@@ -6,7 +6,7 @@ using scms.Application.Services.SCMS;
 
 namespace scms.API.Controllers;
 
-[Route("api/owner/v1[controller]")]
+[Route("api/owner/v1/[controller]")]
 [ApiController]
 [Authorize(Policy = "OwnerOnly")]
 public class ModuleController(IModuleService moduleService) : ControllerBase

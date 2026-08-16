@@ -1,4 +1,4 @@
-﻿// SCMS.Domain/Entities/User.cs
+// SCMS.Domain/Entities/User.cs
 using SCMS.Shared.Entities;
 
 namespace scms.Domain.Entities.Tenant;
@@ -10,6 +10,7 @@ public class User : AuditableEntity
     public string PasswordHash { get; set; } = default!;
 
     public bool IsActive { get; set; } = true;
+    public bool MustChangePassword { get; set; } = false;
     public DateTime? LastLoginAt { get; set; }
 
     public Guid? EmployeeId { get; set; }             // nullable — supports non-employee accounts (pure system admin)

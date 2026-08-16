@@ -1,12 +1,8 @@
 using System.Security.Cryptography;
 
-namespace scms.Infrastructure.Services;
+using scms.Application.Interfaces;
 
-public interface IPasswordHasherService
-{
-    string HashPassword(string password);
-    bool VerifyPassword(string password, string hashedPassword);
-}
+namespace scms.Infrastructure.Services;
 
 public class PasswordHasherService : IPasswordHasherService
 {

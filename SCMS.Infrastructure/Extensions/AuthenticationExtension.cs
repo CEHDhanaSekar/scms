@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using scms.Infrastructure.Services;
+using scms.Application.Interfaces;
 using scms.Shared.Models;
 
 namespace scms.Infrastructure.Extensions;

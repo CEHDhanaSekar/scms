@@ -5,7 +5,7 @@ using scms.Shared.Models;
 
 namespace scms.API.Controllers;
 
-[Route("api/owner/v1auth")]
+[Route("api/owner/v1/auth")]
 [ApiController]
 
 public class OwnerAuthController(IOwnerAuthService ownerAuthService) : ControllerBase

@@ -9,6 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 using scms.Application.Dtos;
 using scms.Domain.Entities.SCMS;
 using scms.Infrastructure.Data;
+using scms.Application.Interfaces;
 using scms.Shared.Models;
 
 namespace scms.Infrastructure.Services;

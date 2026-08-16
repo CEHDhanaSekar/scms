@@ -3,6 +3,7 @@ namespace scms.Application.Interfaces;
 public interface IPlanRepository
 {
     Task<IEnumerable<Plan>> GetAllAsync();
+    Task<Plan?> GetActiveByIdAsync(Guid id, CancellationToken ct = default);
     Task<Plan?> GetByIdAsync(Guid id);
     Task<Plan> AddAsync(Plan plan);
     Task UpdateAsync(Plan plan);

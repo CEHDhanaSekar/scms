@@ -1,9 +1,9 @@
-using scms.Domain.Entities.SCMS;
+using TenantPermission = scms.Domain.Entities.Tenant.Permission;
 
 namespace scms.Application.Interfaces.Tenant;
 
 public interface IPermissionRepository
 {
-    Task<Permission?> GetByIdAsync(Guid id, CancellationToken ct = default);
-    Task<List<Permission>> GetAllAsync(CancellationToken ct = default);
+    Task<TenantPermission?> GetByIdAsync(Guid id, CancellationToken ct = default);
+    Task<List<TenantPermission>> GetAllAsync(CancellationToken ct = default);
 }

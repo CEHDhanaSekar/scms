@@ -11,6 +11,11 @@ public class PlanRepository(ScmsDbContext context) : IPlanRepository
         return await context.Plans.ToListAsync();
     }
 
+    public async Task<Plan?> GetActiveByIdAsync(Guid id, CancellationToken ct = default)
+    {
+        return await context.Plans.FirstOrDefaultAsync(p => p.Id == id && p.IsActive, ct);
+    }
+
     public async Task<Plan?> GetByIdAsync(Guid id)
     {
         return await context.Plans.FindAsync(id);
