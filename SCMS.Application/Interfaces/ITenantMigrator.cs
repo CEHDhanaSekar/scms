@@ -1,4 +1,4 @@
-namespace scms.Infrastructure.Services;
+namespace scms.Application.Interfaces;
 
 /// <summary>
 /// Safely applies all pending EF Core Tenant migrations to a specific

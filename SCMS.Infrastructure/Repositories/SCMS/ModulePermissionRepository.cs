@@ -11,6 +11,14 @@ public class ModulePermissionRepository(ScmsDbContext context) : IModulePermissi
         return await context.ModulePermissions.ToListAsync();
     }
 
+    public async Task<IEnumerable<ModulePermission>> GetByModuleIdsAsync(IEnumerable<Guid> moduleIds, CancellationToken ct = default)
+    {
+        return await context.ModulePermissions
+            .AsNoTracking()
+            .Where(mp => moduleIds.Contains(mp.ModuleId) && mp.IsActive)
+            .ToListAsync(ct);
+    }
+
     public async Task<ModulePermission?> GetByIdAsync(Guid id)
     {
         return await context.ModulePermissions.FindAsync(id);

@@ -1,8 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using scms.Domain.Entities.SCMS;
 using scms.Domain.Entities.Tenant;
-using TenantPermission = scms.Domain.Entities.Tenant.Permission;
 
 namespace scms.Infrastructure.Persistence;
 

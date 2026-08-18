@@ -1,12 +1,12 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using scms.Application.DTOs;
+using scms.Application.Dtos.SCMS;
 using scms.Application.Services.SCMS;
 using scms.Shared.Models;
 
 namespace scms.API.Controllers;
 
-[Route("api/owner/v1[controller]")]
+[Route("api/owner/v1/[controller]")]
 [ApiController]
 [Authorize(Policy = "OwnerOnly")]
 public class ModulePermissionController(IModulePermissionService service) : ControllerBase

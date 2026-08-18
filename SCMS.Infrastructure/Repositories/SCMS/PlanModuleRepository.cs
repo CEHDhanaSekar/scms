@@ -11,6 +11,14 @@ public class PlanModuleRepository(ScmsDbContext context) : IPlanModuleRepository
         return await context.PlanModules.ToListAsync();
     }
 
+    public async Task<IEnumerable<PlanModule>> GetByPlanIdAsync(Guid planId, CancellationToken ct = default)
+    {
+        return await context.PlanModules
+            .AsNoTracking()
+            .Where(pm => pm.PlanId == planId && pm.IsEnabled)
+            .ToListAsync(ct);
+    }
+
     public async Task<PlanModule?> GetByIdAsync(Guid id)
     {
         return await context.PlanModules.FindAsync(id);

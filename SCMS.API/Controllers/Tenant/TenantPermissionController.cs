@@ -7,11 +7,11 @@ namespace scms.API.Controllers.Tenant;
 [Route("api/tenant/v1/[controller]")]
 [ApiController]
 [Authorize]
-public class PermissionController : ControllerBase
+public class TenantPermissionController : ControllerBase
 {
-    private readonly IPermissionService _permissionService;
+    private readonly ITenantPermissionService _permissionService;
 
-    public PermissionController(IPermissionService permissionService)
+    public TenantPermissionController(ITenantPermissionService permissionService)
     {
         _permissionService = permissionService;
     }

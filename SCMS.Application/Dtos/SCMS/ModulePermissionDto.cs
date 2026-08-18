@@ -1,4 +1,4 @@
-namespace scms.Application.DTOs;
+namespace scms.Application.Dtos.SCMS;
 
 public class ModulePermissionDto
 {
@@ -13,12 +13,10 @@ public class CreateModulePermissionDto
 {
     public Guid ModuleId { get; set; }
     public Guid PermissionId { get; set; }
-    public string PermissionKey { get; set; } = string.Empty;
     public bool IsActive { get; set; } = true;
 }
 
 public class UpdateModulePermissionDto
 {
-    public string PermissionKey { get; set; } = string.Empty;
     public bool IsActive { get; set; }
 }

@@ -1,5 +1,5 @@
 using AutoMapper;
-using scms.Application.Dtos;
+using scms.Application.Dtos.SCMS;
 using scms.Application.DTOs;
 using scms.Domain.Entities.SCMS;
 
@@ -16,6 +16,10 @@ public class MappingProfile : Profile
         CreateMap<ModulePermission, ModulePermissionDto>();
         CreateMap<CreateModulePermissionDto, ModulePermission>();
         CreateMap<UpdateModulePermissionDto, ModulePermission>();
+
+        CreateMap<Permission, PermissionDto>();
+        CreateMap<CreatePermissionDto, Permission>();
+        CreateMap<UpdatePermissionDto, Permission>();
 
         CreateMap<Plan, PlanDto>();
         CreateMap<CreatePlanDto, Plan>();

@@ -1,11 +1,12 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using scms.Application.Dtos;
+using scms.Application.Dtos.SCMS;
 using scms.Infrastructure.Services;
 using scms.Shared.Models;
 
 namespace scms.API.Controllers;
 
-[Route("api/owner/v1auth")]
+[Route("api/owner/v1/auth")]
 [ApiController]
 
 public class OwnerAuthController(IOwnerAuthService ownerAuthService) : ControllerBase
@@ -83,6 +84,31 @@ public class OwnerAuthController(IOwnerAuthService ownerAuthService) : Controlle
             Success = true,
             StatusCode = 200,
             Message = "Token revoked successfully."
+        });
+    }
+
+    [Authorize]
+    [HttpPost("logout")]
+    public async Task<ActionResult<ApiResponse<object>>> Logout([FromBody] OwnerLogoutRequestDto request)
+    {
+        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+        var success = await ownerAuthService.RevokeTokenAsync(request.RefreshToken, ipAddress);
+
+        if (!success)
+        {
+            return BadRequest(new ApiResponse<object>
+            {
+                Success = false,
+                StatusCode = 400,
+                Message = "Invalid or expired refresh token."
+            });
+        }
+
+        return Ok(new ApiResponse<object>
+        {
+            Success = true,
+            StatusCode = 200,
+            Message = "Logged out successfully."
         });
     }
 }

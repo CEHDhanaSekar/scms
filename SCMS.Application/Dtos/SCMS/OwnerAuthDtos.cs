@@ -1,4 +1,4 @@
-namespace scms.Application.Dtos;
+namespace scms.Application.Dtos.SCMS;
 
 public record OwnerLoginRequestDto(
     string UsernameOrEmail,
@@ -27,5 +27,9 @@ public record OwnerRefreshTokenRequestDto(
 );
 
 public record OwnerRevokeTokenRequestDto(
+    string RefreshToken
+);
+
+public record OwnerLogoutRequestDto(
     string RefreshToken
 );

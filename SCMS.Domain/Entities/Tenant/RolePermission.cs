@@ -1,4 +1,4 @@
-﻿// SCMS.Domain/Entities/RolePermission.cs
+// SCMS.Domain/Entities/RolePermission.cs
 using SCMS.Shared.Entities;
 
 namespace scms.Domain.Entities.Tenant;
@@ -9,5 +9,5 @@ public class RolePermission : BaseEntity
     public Role Role { get; set; } = default!;
 
     public Guid PermissionId { get; set; }
-    public Permission Permission { get; set; } = default!;
+    public TenantPermission Permission { get; set; } = default!;
 }

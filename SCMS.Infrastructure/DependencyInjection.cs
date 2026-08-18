@@ -2,6 +2,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using scms.Infrastructure.Extensions;
 using scms.Infrastructure.Services;
+using scms.Application.Interfaces;
 using scms.Shared.Models;
 
 namespace scms.Infrastructure;
@@ -26,6 +27,7 @@ public static class DependencyInjection
         services.AddTenantDbContext(AssemblyName);
 
         services.AddScoped<ITenantMigrator, TenantMigrator>();
+        services.AddScoped<ITenantDbSeeder, TenantDbSeeder>();
         
         services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));
         services.AddScoped<Application.Services.IEmailSender, MailKitEmailSender>();

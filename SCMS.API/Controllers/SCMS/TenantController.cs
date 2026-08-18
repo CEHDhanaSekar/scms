@@ -6,10 +6,10 @@ using scms.Shared.Models;
 
 namespace scms.API.Controllers;
 
-[Route("api/owner/v1[controller]")]
+[Route("api/owner/v1/[controller]")]
 [ApiController]
 [Authorize(Policy = "OwnerOnly")]
-public class TenantController(ITenantService service) : ControllerBase
+public class TenantController(ITenantService service, ITenantOnboardingService onboardingService) : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<ApiResponse<IEnumerable<TenantDto>>>> GetAll()
@@ -47,17 +47,28 @@ public class TenantController(ITenantService service) : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<ApiResponse<TenantDto>>> Create(CreateTenantDto dto)
+    public async Task<ActionResult<ApiResponse<TenantOnboardingResult>>> Create(CreateTenantDto dto)
     {
-        var created = await service.CreateTenantAsync(dto);
-        var response = new ApiResponse<TenantDto>
+        var result = await onboardingService.OnboardAsync(dto);
+        if (!result.Success)
+        {
+            return StatusCode(500, new ApiResponse<TenantOnboardingResult>
+            {
+                Success = false,
+                StatusCode = 500,
+                Message = result.FailureReason ?? "Tenant onboarding failed.",
+                Data = result
+            });
+        }
+
+        var response = new ApiResponse<TenantOnboardingResult>
         {
             Success = true,
-            StatusCode = 201,
-            Message = "Tenant created successfully.",
-            Data = created
+            StatusCode = 202,
+            Message = "Tenant onboarding completed successfully.",
+            Data = result
         };
-        return CreatedAtAction(nameof(GetById), new { id = created.Id }, response);
+        return AcceptedAtAction(nameof(GetById), new { id = result.TenantId }, response);
     }
 
     [HttpPut("{id}")]

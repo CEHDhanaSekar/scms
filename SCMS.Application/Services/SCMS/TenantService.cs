@@ -9,7 +9,6 @@ public interface ITenantService
 {
     Task<IEnumerable<TenantDto>> GetAllTenantsAsync(CancellationToken ct = default);
     Task<TenantDto?> GetTenantByIdAsync(Guid id, CancellationToken ct = default);
-    Task<TenantDto> CreateTenantAsync(CreateTenantDto dto, CancellationToken ct = default);
     Task<bool> UpdateTenantAsync(Guid id, UpdateTenantDto dto, CancellationToken ct = default);
     Task<bool> DeleteTenantAsync(Guid id, CancellationToken ct = default);
 }
@@ -27,13 +26,6 @@ public class TenantService(ITenantRepository repository, IMapper mapper) : ITena
         var entity = await repository.GetByIdAsync(id, ct);
         if (entity == null) throw new NotFoundException("Tenant not found");
         return mapper.Map<TenantDto>(entity);
-    }
-
-    public async Task<TenantDto> CreateTenantAsync(CreateTenantDto dto, CancellationToken ct = default)
-    {
-        var entity = mapper.Map<scms.Domain.Entities.SCMS.Tenant>(dto);
-        var created = await repository.AddAsync(entity, ct);
-        return mapper.Map<TenantDto>(created);
     }
 
     public async Task<bool> UpdateTenantAsync(Guid id, UpdateTenantDto dto, CancellationToken ct = default)

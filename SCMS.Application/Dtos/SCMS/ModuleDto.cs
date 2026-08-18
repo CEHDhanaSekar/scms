@@ -1,4 +1,4 @@
-namespace scms.Application.DTOs;
+namespace scms.Application.Dtos.SCMS;
 
 public class ModuleDto
 {
@@ -11,7 +11,6 @@ public class ModuleDto
 
 public class CreateModuleDto
 {
-    public string ModuleKey { get; set; } = string.Empty;
     public string ModuleName { get; set; } = string.Empty;
     public string? Description { get; set; }
     public bool IsActive { get; set; } = true;

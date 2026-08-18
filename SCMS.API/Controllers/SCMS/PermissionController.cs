@@ -9,69 +9,69 @@ namespace scms.API.Controllers;
 [Route("api/owner/v1/[controller]")]
 [ApiController]
 [Authorize(Policy = "OwnerOnly")]
-public class ModuleController(IModuleService moduleService) : ControllerBase
+public class PermissionController(IPermissionService permissionService) : ControllerBase
 {
     [HttpGet]
-    public async Task<ActionResult<ApiResponse<IEnumerable<ModuleDto>>>> GetAll()
+    public async Task<ActionResult<ApiResponse<IEnumerable<PermissionDto>>>> GetAll()
     {
-        var modules = await moduleService.GetAllModulesAsync();
-        return Ok(new ApiResponse<IEnumerable<ModuleDto>>
+        var permissions = await permissionService.GetAllPermissionsAsync();
+        return Ok(new ApiResponse<IEnumerable<PermissionDto>>
         {
             Success = true,
             StatusCode = 200,
-            Message = "Modules retrieved successfully.",
-            Data = modules
+            Message = "Permissions retrieved successfully.",
+            Data = permissions
         });
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<ApiResponse<ModuleDto>>> GetById(Guid id)
+    public async Task<ActionResult<ApiResponse<PermissionDto>>> GetById(Guid id)
     {
-        var module = await moduleService.GetModuleByIdAsync(id);
-        if (module == null)
+        var permission = await permissionService.GetPermissionByIdAsync(id);
+        if (permission == null)
         {
-            return NotFound(new ApiResponse<ModuleDto>
+            return NotFound(new ApiResponse<PermissionDto>
             {
                 Success = false,
                 StatusCode = 404,
-                Message = "Module not found."
+                Message = "Permission not found."
             });
         }
         
-        return Ok(new ApiResponse<ModuleDto>
+        return Ok(new ApiResponse<PermissionDto>
         {
             Success = true,
             StatusCode = 200,
-            Message = "Module retrieved successfully.",
-            Data = module
+            Message = "Permission retrieved successfully.",
+            Data = permission
         });
     }
 
     [HttpPost]
-    public async Task<ActionResult<ApiResponse<ModuleDto>>> Create(CreateModuleDto dto)
+    public async Task<ActionResult<ApiResponse<PermissionDto>>> Create(CreatePermissionDto dto)
     {
-        var created = await moduleService.CreateModuleAsync(dto);
-        var response = new ApiResponse<ModuleDto>
+        var created = await permissionService.CreatePermissionAsync(dto);
+        var response = new ApiResponse<PermissionDto>
         {
             Success = true,
             StatusCode = 201,
-            Message = "Module created successfully.",
+            Message = "Permission created successfully.",
             Data = created
         };
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, response);
     }
 
     [HttpPut("{id}")]
-    public async Task<ActionResult<ApiResponse<object>>> Update(Guid id, UpdateModuleDto dto)
+    public async Task<ActionResult<ApiResponse<object>>> Update(Guid id, UpdatePermissionDto dto)
     {
-        var success = await moduleService.UpdateModuleAsync(id, dto);
+        var success = await permissionService.UpdatePermissionAsync(id, dto);
         if (!success)
         {
             return NotFound(new ApiResponse<object>
             {
                 Success = false,
                 StatusCode = 404,
-                Message = "Module not found."
+                Message = "Permission not found."
             });
         }
         
@@ -79,21 +79,21 @@ public class ModuleController(IModuleService moduleService) : ControllerBase
         {
             Success = true,
             StatusCode = 200,
-            Message = "Module updated successfully."
+            Message = "Permission updated successfully."
         });
     }
 
     [HttpDelete("{id}")]
     public async Task<ActionResult<ApiResponse<object>>> Delete(Guid id)
     {
-        var success = await moduleService.DeleteModuleAsync(id);
+        var success = await permissionService.DeletePermissionAsync(id);
         if (!success)
         {
             return NotFound(new ApiResponse<object>
             {
                 Success = false,
                 StatusCode = 404,
-                Message = "Module not found."
+                Message = "Permission not found."
             });
         }
         
@@ -101,7 +101,7 @@ public class ModuleController(IModuleService moduleService) : ControllerBase
         {
             Success = true,
             StatusCode = 200,
-            Message = "Module deleted successfully."
+            Message = "Permission deleted successfully."
         });
     }
 }

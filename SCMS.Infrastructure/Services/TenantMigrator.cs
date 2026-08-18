@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using scms.Application.Interfaces;
 using scms.Infrastructure.Persistence;
 
 namespace scms.Infrastructure.Services;

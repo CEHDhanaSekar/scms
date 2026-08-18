@@ -35,6 +35,14 @@ public sealed class TenantRepository : ITenantRepository
                 t => t.TenantCode.ToLower() == tenantCode && t.IsActive,
                 ct);
 
+    /// <inheritdoc/>
+    public Task<bool> ExistsByCodeAsync(string tenantCode, CancellationToken ct = default) =>
+        _ctx.Tenants
+            .AsNoTracking()
+            .AnyAsync(
+                t => t.TenantCode.ToLower() == tenantCode.ToLower(),
+                ct);
+
     public async Task<IEnumerable<Domain.Entities.SCMS.Tenant>> GetAllAsync(CancellationToken ct = default) =>
         await _ctx.Tenants.ToListAsync(ct);
 
