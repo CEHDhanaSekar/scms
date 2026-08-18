@@ -29,3 +29,7 @@ public record OwnerRefreshTokenRequestDto(
 public record OwnerRevokeTokenRequestDto(
     string RefreshToken
 );
+
+public record OwnerLogoutRequestDto(
+    string RefreshToken
+);
