@@ -8,17 +8,17 @@ public class PlanRepository(ScmsDbContext context) : IPlanRepository
 {
     public async Task<IEnumerable<Plan>> GetAllAsync()
     {
-        return await context.Plans.ToListAsync();
+        return await context.Plans.Include(p => p.PlanModules).ToListAsync();
     }
 
     public async Task<Plan?> GetActiveByIdAsync(Guid id, CancellationToken ct = default)
     {
-        return await context.Plans.FirstOrDefaultAsync(p => p.Id == id && p.IsActive, ct);
+        return await context.Plans.Include(p => p.PlanModules).FirstOrDefaultAsync(p => p.Id == id && p.IsActive, ct);
     }
 
     public async Task<Plan?> GetByIdAsync(Guid id)
     {
-        return await context.Plans.FindAsync(id);
+        return await context.Plans.Include(p => p.PlanModules).FirstOrDefaultAsync(p => p.Id == id);
     }
 
     public async Task<Plan> AddAsync(Plan plan)
@@ -30,7 +30,10 @@ public class PlanRepository(ScmsDbContext context) : IPlanRepository
 
     public async Task UpdateAsync(Plan plan)
     {
-        context.Plans.Update(plan);
+        if (context.Entry(plan).State == EntityState.Detached)
+        {
+            context.Plans.Update(plan);
+        }
         await context.SaveChangesAsync();
     }
 

@@ -64,7 +64,7 @@ public class UserService : IUserService
         {
             foreach (var roleId in dto.RoleIds)
             {
-                user.UserRoles.Add(new UserRole { RoleId = roleId, UserId = user.Id });
+                user.UserRoles.Add(new UserRole { Id = Guid.Empty, RoleId = roleId, UserId = user.Id });
             }
         }
 

@@ -43,6 +43,37 @@ public class PlanService(IPlanRepository repository, IMapper mapper) : IPlanServ
 
         mapper.Map(dto, entity);
 
+        if (dto.PlanModules != null)
+        {
+            var modulesToRemove = entity.PlanModules
+                .Where(pm => !dto.PlanModules.Any(dpm => dpm.ModuleId == pm.ModuleId))
+                .ToList();
+
+            foreach (var pm in modulesToRemove)
+            {
+                entity.PlanModules.Remove(pm);
+            }
+
+            foreach (var dpm in dto.PlanModules)
+            {
+                var existingPm = entity.PlanModules.FirstOrDefault(pm => pm.ModuleId == dpm.ModuleId);
+                if (existingPm != null)
+                {
+                    existingPm.IsEnabled = dpm.IsEnabled;
+                }
+                else
+                {
+                    entity.PlanModules.Add(new PlanModule
+                    {
+                        Id = Guid.Empty, // Force EF Core to recognize this as a new entity (Added state) instead of existing (Modified state)
+                        PlanId = id,
+                        ModuleId = dpm.ModuleId,
+                        IsEnabled = dpm.IsEnabled
+                    });
+                }
+            }
+        }
+
         await repository.UpdateAsync(entity);
         return true;
     }

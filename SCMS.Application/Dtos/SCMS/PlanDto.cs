@@ -10,6 +10,8 @@ public class PlanDto
     public decimal PriceYearly { get; set; }
     public BillingCycle BillingCycle { get; set; }
     public bool IsActive { get; set; }
+
+    public ICollection<PlanModuleDto> PlanModules { get; set; } = new List<PlanModuleDto>();
 }
 
 public class CreatePlanDto
@@ -21,6 +23,8 @@ public class CreatePlanDto
     public decimal PriceYearly { get; set; }
     public BillingCycle BillingCycle { get; set; }
     public bool IsActive { get; set; } = true;
+
+    public ICollection<CreatePlanModuleDto> PlanModules { get; set; } = new List<CreatePlanModuleDto>();
 }
 
 public class UpdatePlanDto
@@ -32,4 +36,6 @@ public class UpdatePlanDto
     public decimal PriceYearly { get; set; }
     public BillingCycle BillingCycle { get; set; }
     public bool IsActive { get; set; }
+
+    public ICollection<CreatePlanModuleDto> PlanModules { get; set; } = new List<CreatePlanModuleDto>();
 }
