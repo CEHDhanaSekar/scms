@@ -57,7 +57,7 @@ public class RoleService : IRoleService
         {
             foreach (var permId in dto.PermissionIds)
             {
-                role.RolePermissions.Add(new RolePermission { PermissionId = permId, RoleId = role.Id });
+                role.RolePermissions.Add(new RolePermission { Id = Guid.Empty, PermissionId = permId, RoleId = role.Id });
             }
         }
 

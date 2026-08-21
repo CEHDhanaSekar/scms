@@ -23,7 +23,8 @@ public class MappingProfile : Profile
 
         CreateMap<Plan, PlanDto>();
         CreateMap<CreatePlanDto, Plan>();
-        CreateMap<UpdatePlanDto, Plan>();
+        CreateMap<UpdatePlanDto, Plan>()
+            .ForMember(dest => dest.PlanModules, opt => opt.Ignore());
 
         CreateMap<Tenant, TenantDto>();
         CreateMap<CreateTenantDto, Tenant>();
