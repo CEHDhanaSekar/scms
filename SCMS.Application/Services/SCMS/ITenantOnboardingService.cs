@@ -5,6 +5,7 @@ namespace scms.Application.Services.SCMS;
 public interface ITenantOnboardingService
 {
     Task<TenantOnboardingResult> OnboardAsync(CreateTenantDto dto, CancellationToken ct = default);
+    Task UpdateTenantPermissionsAsync(Guid tenantId, CancellationToken ct = default);
 }
 
 public sealed record TenantOnboardingResult(

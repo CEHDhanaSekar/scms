@@ -1,6 +1,7 @@
 ﻿namespace SCMS.Shared.Entities;
 
-public abstract class AuditableEntity : BaseEntity, IAuditableEntity, ISoftDeletable
+public abstract class
+    AuditableEntity : BaseEntity, IAuditableEntity, ISoftDeletable
 {
     public DateTime CreatedAt { get; set; }
     public string? CreatedBy { get; set; }

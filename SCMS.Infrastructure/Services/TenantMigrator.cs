@@ -21,7 +21,7 @@ public class TenantMigrator : ITenantMigrator
     {
         var normalized = tenantCode.Trim().ToLowerInvariant();
         var envCode = normalized.ToUpperInvariant().Replace("-", "_");
-        var envVar = $"SCMS_{envCode}_SHARED_CONNECTION";
+        var envVar = $"SCMS_{envCode}_CONNECTION";
         
         var connStr = Environment.GetEnvironmentVariable(envVar) ?? _config[envVar];
 
