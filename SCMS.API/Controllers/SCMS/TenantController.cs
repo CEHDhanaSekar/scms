@@ -1,20 +1,28 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using scms.Application.DTOs;
 using scms.Application.Services.SCMS;
 using scms.Shared.Models;
-
+using System.Linq;
 namespace scms.API.Controllers;
 
 [Route("api/owner/v1/[controller]")]
 [ApiController]
 [Authorize(Policy = "OwnerOnly")]
-public class TenantController(ITenantService service, ITenantOnboardingService onboardingService) : ControllerBase
+public class TenantController(ITenantService service, ITenantOnboardingService onboardingService, IConfiguration configuration) : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<ApiResponse<IEnumerable<TenantDto>>>> GetAll()
     {
         var result = await service.GetAllTenantsAsync();
+        
+        var ownerTenantCode = configuration["OwnerTenantCode"];
+        if (!string.IsNullOrEmpty(ownerTenantCode))
+        {
+            result = result.Where(t => t.TenantCode != ownerTenantCode);
+        }
+
         return Ok(new ApiResponse<IEnumerable<TenantDto>>
         {
             Success = true,
