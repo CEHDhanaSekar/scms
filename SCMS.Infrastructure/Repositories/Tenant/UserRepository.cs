@@ -22,6 +22,16 @@ public class UserRepository : IUserRepository
             .FirstOrDefaultAsync(u => u.Id == id && !u.IsDeleted, ct);
     }
 
+    public Task<User?> GetWithPermissionsAsync(Guid id, CancellationToken ct = default)
+    {
+        return _context.Users
+            .Include(u => u.UserRoles)
+                .ThenInclude(ur => ur.Role)
+                    .ThenInclude(r => r.RolePermissions)
+                        .ThenInclude(rp => rp.Permission)
+            .FirstOrDefaultAsync(u => u.Id == id && !u.IsDeleted && u.IsActive, ct);
+    }
+
     public Task<List<User>> GetAllAsync(CancellationToken ct = default)
     {
         return _context.Users

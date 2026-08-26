@@ -66,4 +66,12 @@ public class UserController : ControllerBase
         if (!result) return NotFound();
         return NoContent();
     }
+
+    [HttpGet("{id:guid}/permissions")]
+    public async Task<IActionResult> GetPermissions(Guid id, CancellationToken ct)
+    {
+        var result = await _userService.GetPermissionsAsync(id, ct);
+        if (result == null) return NotFound();
+        return Ok(result);
+    }
 }

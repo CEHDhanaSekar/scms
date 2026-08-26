@@ -88,4 +88,30 @@ public class UserService : IUserService
         await _userRepository.SaveChangesAsync(ct);
         return true;
     }
+
+    public async Task<UserPermissionsResponseDto?> GetPermissionsAsync(Guid userId, CancellationToken ct = default)
+    {
+        var user = await _userRepository.GetWithPermissionsAsync(userId, ct);
+        if (user == null) return null;
+
+        // Flatten Role → RolePermissions → Permission, filter inactive, deduplicate by permission Id
+        var permissions = user.UserRoles
+            .SelectMany(ur => ur.Role.RolePermissions
+                .Where(rp => rp.Permission.IsActive)
+                .Select(rp => new UserPermissionDto
+                {
+                    Id = rp.Permission.Id,
+                    Code = rp.Permission.Code,
+                    Description = rp.Permission.Description,
+                    RoleName = ur.Role.Name
+                }))
+            .DistinctBy(p => p.Id)
+            .ToList();
+
+        return new UserPermissionsResponseDto
+        {
+            UserId = user.Id,
+            Permissions = permissions
+        };
+    }
 }
