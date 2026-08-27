@@ -9,4 +9,5 @@ public interface IUserService
     Task<UserDto> CreateAsync(CreateUserDto dto, string createdBy, CancellationToken ct = default);
     Task<UserDto> UpdateAsync(UpdateUserDto dto, string updatedBy, CancellationToken ct = default);
     Task<bool> DeleteAsync(Guid id, string deletedBy, CancellationToken ct = default);
+    Task<UserPermissionsResponseDto?> GetPermissionsAsync(Guid userId, CancellationToken ct = default);
 }
