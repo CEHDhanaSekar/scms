@@ -92,6 +92,9 @@ public class TenantController(ITenantService service, ITenantOnboardingService o
                 Message = "Tenant not found."
             });
         }
+        
+        // Update tenant permissions in their respective database based on plan changes
+        await onboardingService.UpdateTenantPermissionsAsync(id);
         return Ok(new ApiResponse<object>
         {
             Success = true,

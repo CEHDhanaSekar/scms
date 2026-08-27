@@ -139,4 +139,43 @@ public class TenantOnboardingService : ITenantOnboardingService
         await _tenantRepository.UpdateAsync(tenant, ct);
         return new TenantOnboardingResult(false, tenant.Id, tenant.TenantCode, reason, step);
     }
+
+    public async Task UpdateTenantPermissionsAsync(Guid tenantId, CancellationToken ct = default)
+    {
+        var tenant = await _tenantRepository.GetByIdAsync(tenantId, ct);
+        if (tenant == null)
+        {
+            throw new NotFoundException($"Tenant with ID {tenantId} not found.");
+        }
+
+        var plan = await _planRepository.GetActiveByIdAsync(tenant.PlanId, ct);
+        if (plan == null)
+        {
+            throw new BadRequestException($"Plan '{tenant.PlanId}' does not exist or is inactive.");
+        }
+
+        var migrationResult = await _tenantMigrator.MigrateAsync(tenant.TenantCode, ct);
+        if (!migrationResult.Success)
+        {
+            throw new InvalidOperationException($"Migration failed for tenant '{tenant.TenantCode}'.");
+        }
+
+        var planModules = await _planModuleRepository.GetByPlanIdAsync(tenant.PlanId, ct);
+        var moduleIds = planModules.Select(pm => pm.ModuleId).ToList();
+
+        var modulePermissions = await _modulePermissionRepository.GetByModuleIdsAsync(moduleIds, ct);
+        
+        var distinctPermissions = modulePermissions
+            .GroupBy(mp => mp.PermissionKey)
+            .Select(g => g.First())
+            .ToList();
+
+        var distinctPermissionKeys = distinctPermissions.Select(mp => mp.PermissionKey);
+
+        await _tenantDbSeeder.UpdateTenantPermissionsAsync(
+            migrationResult.ConnectionString,
+            distinctPermissionKeys,
+            plan.PlanName,
+            ct);
+    }
 }

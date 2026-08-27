@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using scms.Application.Dtos.Tenant;
 using scms.Application.Interfaces.Tenant;
@@ -7,7 +8,7 @@ namespace scms.API.Controllers.Tenant;
 
 [Route("api/tenant/v1/[controller]")]
 [ApiController]
-//[Authorize]
+[Authorize]
 public class DepartmentController : ControllerBase
 {
     private readonly IDepartmentService _departmentService;

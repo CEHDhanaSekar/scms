@@ -9,4 +9,10 @@ public interface ITenantDbSeeder
         IEnumerable<string> permissionKeys, 
         string planName, 
         CancellationToken ct = default);
+
+    Task UpdateTenantPermissionsAsync(
+        string connectionString,
+        IEnumerable<string> permissionKeys,
+        string planName,
+        CancellationToken ct = default);
 }

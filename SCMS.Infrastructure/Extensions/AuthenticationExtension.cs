@@ -85,6 +85,7 @@ public static class AuthenticationExtensions
     {
         services.AddScoped<IPasswordHasherService, PasswordHasherService>();
         services.AddScoped<IOwnerAuthService, OwnerAuthService>();
+        services.AddScoped<Application.Interfaces.Tenant.ITenantAuthService, TenantAuthService>();
         return services;
     }
 }

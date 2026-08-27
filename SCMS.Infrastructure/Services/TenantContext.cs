@@ -17,7 +17,7 @@ namespace scms.Infrastructure.Services;
 ///   2. Normalize: trim + lowercase
 ///   3. Cache check (key: "tenantctx::{code}")
 ///   4. On miss:
-///      a. Read env var SCMS_{CODE}_SHARED_CONNECTION → throw if absent
+///      a. Read env var SCMS_{CODE}_CONNECTION → throw if absent
 ///      b. Verify tenant is active in DB via ITenantRepository
 ///      c. Determine IsOwner from config "OwnerTenantCode"
 ///      d. Cache (30 min absolute / 10 min sliding)
@@ -72,7 +72,7 @@ public sealed class TenantContext : ITenantContext
 
         // 4a — Read env var
         var envCode = normalized.ToUpperInvariant().Replace("-", "_");
-        var envVar  = $"SCMS_{envCode}_SHARED_CONNECTION";
+        var envVar  = $"SCMS_{envCode}_CONNECTION";
         var connStr = Environment.GetEnvironmentVariable(envVar)
                    ?? _config[envVar];  // also check appsettings fallback
 
