@@ -14,13 +14,17 @@ public class TenantPermissionRepository : ITenantPermissionRepository
         _context = context;
     }
 
-    public Task<TenantPermission> GetByIdAsync(Guid id, CancellationToken ct = default)
+    public Task<TenantPermission?> GetByIdAsync(Guid id, bool onlyActive = false, CancellationToken ct = default)
     {
-        return _context.Permissions.FirstOrDefaultAsync(p => p.Id == id, ct);
+        var query = _context.Permissions.Where(p => p.Id == id);
+        if (onlyActive) query = query.Where(p => p.IsActive);
+        return query.FirstOrDefaultAsync(ct);
     }
 
-    public Task<List<TenantPermission>> GetAllAsync(CancellationToken ct = default)
+    public Task<List<TenantPermission>> GetAllAsync(bool onlyActive = false, CancellationToken ct = default)
     {
-        return _context.Permissions.ToListAsync(ct);
+        var query = _context.Permissions.AsQueryable();
+        if (onlyActive) query = query.Where(p => p.IsActive);
+        return query.ToListAsync(ct);
     }
 }

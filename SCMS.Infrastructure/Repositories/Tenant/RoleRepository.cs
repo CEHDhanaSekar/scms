@@ -14,18 +14,18 @@ public class RoleRepository : IRoleRepository
         _context = context;
     }
 
-    public Task<Role?> GetByIdAsync(Guid id, CancellationToken ct = default)
+    public Task<Role?> GetByIdAsync(Guid id, bool onlyActive = false, CancellationToken ct = default)
     {
-        return _context.Roles
-            .Include(r => r.RolePermissions)
-            .FirstOrDefaultAsync(r => r.Id == id, ct);
+        var query = _context.Roles.Include(r => r.RolePermissions).Where(r => r.Id == id);
+        if (onlyActive) query = query.Where(r => r.IsActive);
+        return query.FirstOrDefaultAsync(ct);
     }
 
-    public Task<List<Role>> GetAllAsync(CancellationToken ct = default)
+    public Task<List<Role>> GetAllAsync(bool onlyActive = false, CancellationToken ct = default)
     {
-        return _context.Roles
-            .Include(r => r.RolePermissions)
-            .ToListAsync(ct);
+        var query = _context.Roles.Include(r => r.RolePermissions).AsQueryable();
+        if (onlyActive) query = query.Where(r => r.IsActive);
+        return query.ToListAsync(ct);
     }
 
     public async Task AddAsync(Role role, CancellationToken ct = default)

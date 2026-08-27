@@ -16,16 +16,16 @@ public class UserService : IUserService
         _mapper = mapper;
     }
 
-    public async Task<UserDto?> GetByIdAsync(Guid id, CancellationToken ct = default)
+    public async Task<UserDto?> GetByIdAsync(Guid id, bool onlyActive = false, CancellationToken ct = default)
     {
-        var user = await _userRepository.GetByIdAsync(id, ct);
+        var user = await _userRepository.GetByIdAsync(id, onlyActive, ct);
         if (user == null) return null;
         return _mapper.Map<UserDto>(user);
     }
 
-    public async Task<List<UserDto>> GetAllAsync(CancellationToken ct = default)
+    public async Task<List<UserDto>> GetAllAsync(bool onlyActive = false, CancellationToken ct = default)
     {
-        var users = await _userRepository.GetAllAsync(ct);
+        var users = await _userRepository.GetAllAsync(onlyActive, ct);
         return _mapper.Map<List<UserDto>>(users);
     }
 
@@ -51,7 +51,7 @@ public class UserService : IUserService
 
     public async Task<UserDto> UpdateAsync(UpdateUserDto dto, string updatedBy, CancellationToken ct = default)
     {
-        var user = await _userRepository.GetByIdAsync(dto.Id, ct);
+        var user = await _userRepository.GetByIdAsync(dto.Id, true, ct);
         if (user == null) throw new KeyNotFoundException("User not found");
 
         _mapper.Map(dto, user);
@@ -76,7 +76,7 @@ public class UserService : IUserService
 
     public async Task<bool> DeleteAsync(Guid id, string deletedBy, CancellationToken ct = default)
     {
-        var user = await _userRepository.GetByIdAsync(id, ct);
+        var user = await _userRepository.GetByIdAsync(id, true, ct);
         if (user == null) return false;
 
         user.IsDeleted = true;

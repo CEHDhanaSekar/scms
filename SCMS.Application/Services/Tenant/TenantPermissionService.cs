@@ -15,16 +15,16 @@ public class TenantPermissionService : ITenantPermissionService
         _mapper = mapper;
     }
 
-    public async Task<TenantPermissionDto?> GetByIdAsync(Guid id, CancellationToken ct = default)
+    public async Task<TenantPermissionDto?> GetByIdAsync(Guid id, bool onlyActive = false, CancellationToken ct = default)
     {
-        var permission = await _permissionRepository.GetByIdAsync(id, ct);
+        var permission = await _permissionRepository.GetByIdAsync(id, onlyActive, ct);
         if (permission == null) return null;
         return _mapper.Map<TenantPermissionDto>(permission);
     }
 
-    public async Task<List<TenantPermissionDto>> GetAllAsync(CancellationToken ct = default)
+    public async Task<List<TenantPermissionDto>> GetAllAsync(bool onlyActive = false, CancellationToken ct = default)
     {
-        var permissions = await _permissionRepository.GetAllAsync(ct);
+        var permissions = await _permissionRepository.GetAllAsync(onlyActive, ct);
         return _mapper.Map<List<TenantPermissionDto>>(permissions);
     }
 }
