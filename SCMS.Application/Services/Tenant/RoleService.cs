@@ -16,16 +16,16 @@ public class RoleService : IRoleService
         _mapper = mapper;
     }
 
-    public async Task<RoleDto?> GetByIdAsync(Guid id, CancellationToken ct = default)
+    public async Task<RoleDto?> GetByIdAsync(Guid id, bool onlyActive = false, CancellationToken ct = default)
     {
-        var role = await _roleRepository.GetByIdAsync(id, ct);
+        var role = await _roleRepository.GetByIdAsync(id, onlyActive, ct);
         if (role == null) return null;
         return _mapper.Map<RoleDto>(role);
     }
 
-    public async Task<List<RoleDto>> GetAllAsync(CancellationToken ct = default)
+    public async Task<List<RoleDto>> GetAllAsync(bool onlyActive = false, CancellationToken ct = default)
     {
-        var roles = await _roleRepository.GetAllAsync(ct);
+        var roles = await _roleRepository.GetAllAsync(onlyActive, ct);
         return _mapper.Map<List<RoleDto>>(roles);
     }
 
@@ -46,7 +46,7 @@ public class RoleService : IRoleService
 
     public async Task<RoleDto> UpdateAsync(UpdateRoleDto dto, CancellationToken ct = default)
     {
-        var role = await _roleRepository.GetByIdAsync(dto.Id, ct);
+        var role = await _roleRepository.GetByIdAsync(dto.Id, true, ct);
         if (role == null) throw new KeyNotFoundException("Role not found");
 
         _mapper.Map(dto, role);
@@ -69,7 +69,7 @@ public class RoleService : IRoleService
 
     public async Task<bool> DeleteAsync(Guid id, CancellationToken ct = default)
     {
-        var role = await _roleRepository.GetByIdAsync(id, ct);
+        var role = await _roleRepository.GetByIdAsync(id, true, ct);
         if (role == null) return false;
 
         await _roleRepository.DeleteAsync(role, ct);

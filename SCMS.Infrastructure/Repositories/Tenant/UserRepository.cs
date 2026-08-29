@@ -14,12 +14,16 @@ public class UserRepository : IUserRepository
         _context = context;
     }
 
-    public Task<User?> GetByIdAsync(Guid id, CancellationToken ct = default)
+    public Task<User?> GetByIdAsync(Guid id, bool onlyActive = false, CancellationToken ct = default)
     {
-        return _context.Users
+        var query = _context.Users
             .Include(u => u.UserRoles)
             .ThenInclude(ur => ur.Role)
-            .FirstOrDefaultAsync(u => u.Id == id && !u.IsDeleted, ct);
+            .Where(u => u.Id == id && !u.IsDeleted);
+            
+        if (onlyActive) query = query.Where(u => u.IsActive);
+        
+        return query.FirstOrDefaultAsync(ct);
     }
 
     public Task<User?> GetWithPermissionsAsync(Guid id, CancellationToken ct = default)
@@ -32,12 +36,15 @@ public class UserRepository : IUserRepository
             .FirstOrDefaultAsync(u => u.Id == id && !u.IsDeleted && u.IsActive, ct);
     }
 
-    public Task<List<User>> GetAllAsync(CancellationToken ct = default)
+    public Task<List<User>> GetAllAsync(bool onlyActive = false, CancellationToken ct = default)
     {
-        return _context.Users
+        var query = _context.Users
             .Include(u => u.UserRoles)
-            .Where(u => !u.IsDeleted)
-            .ToListAsync(ct);
+            .Where(u => !u.IsDeleted);
+            
+        if (onlyActive) query = query.Where(u => u.IsActive);
+        
+        return query.ToListAsync(ct);
     }
 
     public Task<User?> GetByEmailAsync(string email, CancellationToken ct = default)
