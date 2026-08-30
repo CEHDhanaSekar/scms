@@ -1,5 +1,6 @@
 using AutoMapper;
 using scms.Application.Dtos.Tenant;
+using scms.Application.Interfaces;
 using scms.Application.Interfaces.Tenant;
 using scms.Domain.Entities.Tenant;
 
@@ -9,11 +10,13 @@ public class UserService : IUserService
 {
     private readonly IUserRepository _userRepository;
     private readonly IMapper _mapper;
+    private readonly IPasswordHasherService _passwordHasher;
 
-    public UserService(IUserRepository userRepository, IMapper mapper)
+    public UserService(IUserRepository userRepository, IMapper mapper, IPasswordHasherService passwordHasher)
     {
         _userRepository = userRepository;
         _mapper = mapper;
+        _passwordHasher = passwordHasher;
     }
 
     public async Task<UserDto?> GetByIdAsync(Guid id, bool onlyActive = false, CancellationToken ct = default)
@@ -32,11 +35,12 @@ public class UserService : IUserService
     public async Task<UserDto> CreateAsync(CreateUserDto dto, string createdBy, CancellationToken ct = default)
     {
         var user = _mapper.Map<User>(dto);
-        // Password hashing would typically happen here
-        user.PasswordHash = dto.Password; // Replace with proper hashing
+        
+        user.PasswordHash = _passwordHasher.HashPassword(dto.Password);
         user.CreatedAt = DateTime.UtcNow;
         user.CreatedBy = createdBy;
         user.IsActive = true;
+        user.MustChangePassword = true;
 
         if (dto.RoleIds != null && dto.RoleIds.Any())
         {
