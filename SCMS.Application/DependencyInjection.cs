@@ -28,6 +28,7 @@ public static class DependencyInjection
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IRoleService, RoleService>();
         services.AddScoped<ITenantPermissionService, TenantPermissionService>();
+        services.AddScoped<ISpecializationService, SpecializationService>();
 
         // Validators
         // FluentValidation automatically scanned in API layer usually, but we can register if needed.

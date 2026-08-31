@@ -33,5 +33,10 @@ public class TenantMappingProfile : Profile
 
         // Permission
         CreateMap<TenantPermission, TenantPermissionDto>();
+
+        // Specialization
+        CreateMap<Specialization, SpecializationDto>();
+        CreateMap<CreateSpecializationDto, Specialization>();
+        CreateMap<UpdateSpecializationDto, Specialization>();
     }
 }
