@@ -23,6 +23,7 @@ public static class RepositoryExtension
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IRoleRepository, RoleRepository>();
         services.AddScoped<ITenantPermissionRepository, TenantPermissionRepository>();
+        services.AddScoped<ISpecializationRepository, SpecializationRepository>();
 
         return services;
     }

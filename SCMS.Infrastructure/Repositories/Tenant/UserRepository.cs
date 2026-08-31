@@ -40,6 +40,7 @@ public class UserRepository : IUserRepository
     {
         var query = _context.Users
             .Include(u => u.UserRoles)
+            .ThenInclude(ur => ur.Role)
             .Where(u => !u.IsDeleted);
             
         if (onlyActive) query = query.Where(u => u.IsActive);

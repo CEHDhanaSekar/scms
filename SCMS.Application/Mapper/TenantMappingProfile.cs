@@ -20,7 +20,8 @@ public class TenantMappingProfile : Profile
 
         // User
         CreateMap<User, UserDto>()
-            .ForMember(dest => dest.RoleIds, opt => opt.MapFrom(src => src.UserRoles.Select(ur => ur.RoleId)));
+            .ForMember(dest => dest.RoleIds, opt => opt.MapFrom(src => src.UserRoles.Select(ur => ur.RoleId)))
+            .ForMember(dest => dest.Roles, opt => opt.MapFrom(src => src.UserRoles.Where(ur => ur.Role != null).Select(ur => new UserRoleInfoDto { Id = ur.Role.Id, Name = ur.Role.Name })));
         CreateMap<CreateUserDto, User>();
         CreateMap<UpdateUserDto, User>();
 
@@ -32,5 +33,10 @@ public class TenantMappingProfile : Profile
 
         // Permission
         CreateMap<TenantPermission, TenantPermissionDto>();
+
+        // Specialization
+        CreateMap<Specialization, SpecializationDto>();
+        CreateMap<CreateSpecializationDto, Specialization>();
+        CreateMap<UpdateSpecializationDto, Specialization>();
     }
 }
