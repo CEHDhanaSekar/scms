@@ -1,10 +1,10 @@
 namespace SCMS.Domain.Enums;
 
-public enum CacheEntity
+public enum TenantCacheEntity
 {
-    Site,
-    SiteType,
+    User,
     Role,
     Permission,
-    Menu
+    Department,
+    Employee
 }
