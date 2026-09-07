@@ -1,8 +1,9 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using scms.Application.Interfaces;
+using scms.Infrastructure.Caching;
 using scms.Infrastructure.Extensions;
 using scms.Infrastructure.Services;
-using scms.Application.Interfaces;
 using scms.Shared.Models;
 
 namespace scms.Infrastructure;
@@ -19,8 +20,11 @@ public static class DependencyInjection
         services.AddMemoryCache();
 
         services.AddScoped<ITenantContext, TenantContext>();
+        services.AddScoped<ICacheKeyFactory, CacheKeyFactory>();  // Scoped: depends on ITenantContext
 
         services.AddCustomScmsDbContext(configuration);
+
+        services.AddScmsCaching(configuration);
 
         // TenantDbContext — per-request connection resolved via ITenantContext.
         // Falls back to TENANT_DESIGN_CONN for EF design-time tooling.
@@ -28,7 +32,7 @@ public static class DependencyInjection
 
         services.AddScoped<ITenantMigrator, TenantMigrator>();
         services.AddScoped<ITenantDbSeeder, TenantDbSeeder>();
-        
+
         services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));
         services.AddScoped<Application.Services.IEmailSender, MailKitEmailSender>();
 
