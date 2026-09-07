@@ -1,3 +1,5 @@
+using SCMS.Domain.Enums;
+
 namespace scms.Application.Interfaces;
 
 public interface ICacheKeyFactory
@@ -7,5 +9,5 @@ public interface ICacheKeyFactory
     /// Tenant code is resolved automatically from <see cref="scms.Shared.Models.ITenantContext"/>.
     /// Format: <c>{instanceName}{tenantCode}:{entity}:{key}</c>
     /// </summary>
-    string Create(string entity, object key);
+    string Create(TenantCacheEntity entity, object key);
 }

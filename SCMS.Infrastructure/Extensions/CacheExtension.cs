@@ -24,7 +24,7 @@ public static class CacheExtension
                 configuration["Redis:InstanceName"];
         });
 
-        services.AddSingleton<ICacheKeyFactory,
+        services.AddScoped<ICacheKeyFactory,
             CacheKeyFactory>();
 
         services.AddSingleton<CacheExpirationProvider>();
