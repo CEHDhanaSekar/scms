@@ -1,8 +1,10 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using scms.Application.Common.Caching;
+using scms.Application.Interfaces;
+using scms.Infrastructure.Caching;
 using scms.Infrastructure.Extensions;
 using scms.Infrastructure.Services;
-using scms.Application.Interfaces;
 using scms.Shared.Models;
 
 namespace scms.Infrastructure;
@@ -19,6 +21,9 @@ public static class DependencyInjection
         services.AddMemoryCache();
 
         services.AddScoped<ITenantContext, TenantContext>();
+        services.AddScoped<ICacheKeyFactory, CacheKeyFactory>();  // Scoped: depends on ITenantContext
+        services.AddScoped<ICacheService, RedisCacheService>();   // Scoped: depends on ITenantContext
+
 
         services.AddCustomScmsDbContext(configuration);
 
