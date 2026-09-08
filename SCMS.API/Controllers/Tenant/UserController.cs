@@ -55,19 +55,9 @@ public class UserController : ControllerBase
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id, [FromQuery] bool onlyActive = true, CancellationToken ct = default)
     {
-        var cacheKey = _cacheKeyFactory.Create(TenantCacheEntity.User, $"{id}:active={onlyActive}");
-        var cachedData = await _cacheService.GetAsync<UserDto>(cacheKey, ct);
-        
-        if (cachedData != null)
-        {
-            return Ok(new ApiResponse<UserDto> { Success = true, StatusCode = 200, Data = cachedData });
-        }
-
         var user = await _userService.GetByIdAsync(id, onlyActive, ct);
         if (user == null) return NotFound(new ApiResponse<UserDto> { Success = false, StatusCode = 404, Message = "User not found" });
-        
-        await _cacheService.SetAsync(cacheKey, user, _cacheExpiration.GetExpiration(), ct);
-        
+
         return Ok(new ApiResponse<UserDto> { Success = true, StatusCode = 200, Data = user });
     }
 
@@ -94,9 +84,7 @@ public class UserController : ControllerBase
         {
             var result = await _userService.UpdateAsync(dto, updatedBy, ct);
             
-            // Invalidate cache
-            await _cacheService.RemoveAsync(_cacheKeyFactory.Create(TenantCacheEntity.User, $"{id}:active=True"), ct);
-            await _cacheService.RemoveAsync(_cacheKeyFactory.Create(TenantCacheEntity.User, $"{id}:active=False"), ct);
+            // Invalidate lists cache
             await _cacheService.RemoveAsync(_cacheKeyFactory.Create(TenantCacheEntity.User, "all:active=True"), ct);
             await _cacheService.RemoveAsync(_cacheKeyFactory.Create(TenantCacheEntity.User, "all:active=False"), ct);
             
@@ -115,9 +103,7 @@ public class UserController : ControllerBase
         var result = await _userService.DeleteAsync(id, deletedBy, ct);
         if (!result) return NotFound(new ApiResponse<bool> { Success = false, StatusCode = 404, Message = "User not found" });
         
-        // Invalidate cache
-        await _cacheService.RemoveAsync(_cacheKeyFactory.Create(TenantCacheEntity.User, $"{id}:active=True"), ct);
-        await _cacheService.RemoveAsync(_cacheKeyFactory.Create(TenantCacheEntity.User, $"{id}:active=False"), ct);
+        // Invalidate lists cache
         await _cacheService.RemoveAsync(_cacheKeyFactory.Create(TenantCacheEntity.User, "all:active=True"), ct);
         await _cacheService.RemoveAsync(_cacheKeyFactory.Create(TenantCacheEntity.User, "all:active=False"), ct);
 

@@ -3,6 +3,10 @@ using Microsoft.AspNetCore.Mvc;
 using scms.Application.Interfaces.Tenant;
 using scms.Shared.Models;
 using scms.Application.Dtos.Tenant;
+using scms.Application.Common.Caching;
+using scms.Application.Interfaces;
+using scms.Infrastructure.Caching;
+using SCMS.Domain.Enums;
 
 namespace scms.API.Controllers.Tenant;
 
@@ -12,16 +16,37 @@ namespace scms.API.Controllers.Tenant;
 public class TenantPermissionController : ControllerBase
 {
     private readonly ITenantPermissionService _permissionService;
+    private readonly ICacheService _cacheService;
+    private readonly ICacheKeyFactory _cacheKeyFactory;
+    private readonly CacheExpirationProvider _cacheExpiration;
 
-    public TenantPermissionController(ITenantPermissionService permissionService)
+    public TenantPermissionController(
+        ITenantPermissionService permissionService,
+        ICacheService cacheService,
+        ICacheKeyFactory cacheKeyFactory,
+        CacheExpirationProvider cacheExpiration)
     {
         _permissionService = permissionService;
+        _cacheService = cacheService;
+        _cacheKeyFactory = cacheKeyFactory;
+        _cacheExpiration = cacheExpiration;
     }
 
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] bool onlyActive = true, CancellationToken ct = default)
     {
+        var cacheKey = _cacheKeyFactory.Create(TenantCacheEntity.Permission, $"all:active={onlyActive}");
+        var cachedData = await _cacheService.GetAsync<List<TenantPermissionDto>>(cacheKey, ct);
+
+        if (cachedData != null)
+        {
+            return Ok(new ApiResponse<List<TenantPermissionDto>> { Success = true, StatusCode = 200, Data = cachedData });
+        }
+
         var permissions = await _permissionService.GetAllAsync(onlyActive, ct);
+
+        await _cacheService.SetAsync(cacheKey, permissions, _cacheExpiration.GetExpiration(), ct);
+
         return Ok(new ApiResponse<List<TenantPermissionDto>> { Success = true, StatusCode = 200, Data = permissions });
     }
 
