@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Options;
 using scms.Application.Interfaces;
 using scms.Shared.Models;
+using SCMS.Domain.Enums;
 
 namespace scms.Infrastructure.Caching;
 
@@ -24,7 +25,7 @@ public sealed class CacheKeyFactory : ICacheKeyFactory
     }
 
     /// <inheritdoc />
-    public string Create(string entity, object key)
+    public string Create(TenantCacheEntity entity, object key)
     {
         return $"{_options.InstanceName}" +
                $"{_tenantContext.TenantCode}:" +
