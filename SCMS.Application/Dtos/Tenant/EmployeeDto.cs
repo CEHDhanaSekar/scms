@@ -1,4 +1,4 @@
-using SCMS.Domain.Enums;
+
 
 namespace scms.Application.Dtos.Tenant;
 
@@ -9,7 +9,7 @@ public class EmployeeDto
     public string LastName { get; set; } = default!;
     public string? PhoneNumber { get; set; }
     public string? Email { get; set; }
-    public EmployeeType Type { get; set; }
+    public Guid TypeId { get; set; }
     public Guid DepartmentId { get; set; }
     public Guid? SpecializationId { get; set; }
     public bool IsDeleted { get; set; }
@@ -21,7 +21,7 @@ public class CreateEmployeeDto
     public string LastName { get; set; } = default!;
     public string? PhoneNumber { get; set; }
     public string? Email { get; set; }
-    public EmployeeType Type { get; set; }
+    public Guid TypeId { get; set; }
     public Guid DepartmentId { get; set; }
     public Guid? SpecializationId { get; set; }
 }
@@ -33,7 +33,7 @@ public class UpdateEmployeeDto
     public string LastName { get; set; } = default!;
     public string? PhoneNumber { get; set; }
     public string? Email { get; set; }
-    public EmployeeType Type { get; set; }
+    public Guid TypeId { get; set; }
     public Guid DepartmentId { get; set; }
     public Guid? SpecializationId { get; set; }
 }

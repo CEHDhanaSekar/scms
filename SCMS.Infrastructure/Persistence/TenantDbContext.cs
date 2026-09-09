@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using scms.Domain.Entities.SCMS;
 using scms.Domain.Entities.Tenant;
 
 namespace scms.Infrastructure.Persistence;
@@ -16,6 +15,7 @@ public class TenantDbContext(DbContextOptions<TenantDbContext> options) : DbCont
     public DbSet<User> Users { get; set; }
     public DbSet<UserRole> UserRoles { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
+    public DbSet<MasterValues> MasterValues { get; set; }
     public DbSet<Patient> Patients { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -29,6 +29,7 @@ public class TenantDbContext(DbContextOptions<TenantDbContext> options) : DbCont
         modelBuilder.Entity<User>(ConfigUser);
         modelBuilder.Entity<UserRole>(ConfigUserRole);
         modelBuilder.Entity<RefreshToken>(ConfigRefreshToken);
+        modelBuilder.Entity<MasterValues>(ConfigMasterValues);
         modelBuilder.Entity<Patient>(ConfigPatient);
     }
 
@@ -70,5 +71,10 @@ public class TenantDbContext(DbContextOptions<TenantDbContext> options) : DbCont
 
     private static void ConfigPatient(EntityTypeBuilder<Patient> e)
     {
+    }
+
+    private static void ConfigMasterValues(EntityTypeBuilder<MasterValues> e)
+    {
+        e.HasData(TenantDataSeed.EmployeeTypes);
     }
 }
