@@ -1,4 +1,4 @@
-﻿using SCMS.Domain.Enums;
+
 using SCMS.Shared.Entities;
 
 namespace scms.Domain.Entities.Tenant;
@@ -10,7 +10,8 @@ public class Employee : AuditableEntity
     public string? PhoneNumber { get; set; }
     public string? Email { get; set; }
 
-    public EmployeeType Type { get; set; }          // Doctor, Nurse, Receptionist, Admin, etc.
+    public Guid TypeId { get; set; }
+    public MasterValues Type { get; set; } = default!;
 
     public Guid DepartmentId { get; set; }
     public Department Department { get; set; } = default!;

@@ -6,5 +6,6 @@ public enum TenantCacheEntity
     Role,
     Permission,
     Department,
-    Employee
+    Employee,
+    MasterValues
 }
