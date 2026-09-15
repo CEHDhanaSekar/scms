@@ -35,17 +35,12 @@ public class RoleController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] bool onlyActive = true, CancellationToken ct = default)
     {
-        var cacheKey = _cacheKeyFactory.Create(TenantCacheEntity.Role, $"all:active={onlyActive}");
-        var cachedData = await _cacheService.GetAsync<List<RoleDto>>(cacheKey, ct);
-
-        if (cachedData != null)
-        {
-            return Ok(new ApiResponse<List<RoleDto>> { Success = true, StatusCode = 200, Data = cachedData });
-        }
-
-        var roles = await _roleService.GetAllAsync(onlyActive, ct);
-
-        await _cacheService.SetAsync(cacheKey, roles, _cacheExpiration.GetExpiration(), ct);
+        var cacheKey = _cacheKeyFactory.Create(TenantCacheEntity.Role, CacheKeys.AllActiveKey(onlyActive));
+        var roles = await _cacheService.GetOrSetAsync<List<RoleDto>>(
+            cacheKey,
+            () => _roleService.GetAllAsync(onlyActive, ct),
+            _cacheExpiration.GetExpiration(),
+            ct);
 
         return Ok(new ApiResponse<List<RoleDto>> { Success = true, StatusCode = 200, Data = roles });
     }
@@ -62,10 +57,7 @@ public class RoleController : ControllerBase
     public async Task<IActionResult> Create([FromBody] CreateRoleDto dto, CancellationToken ct)
     {
         var result = await _roleService.CreateAsync(dto, ct);
-
-        // Invalidate lists cache
-        await _cacheService.RemoveAsync(_cacheKeyFactory.Create(TenantCacheEntity.Role, "all:active=True"), ct);
-        await _cacheService.RemoveAsync(_cacheKeyFactory.Create(TenantCacheEntity.Role, "all:active=False"), ct);
+        await InvalidateRoleCache(ct);
 
         return CreatedAtAction(nameof(GetById), new { id = result.Id }, new ApiResponse<RoleDto> { Success = true, StatusCode = 201, Data = result });
     }
@@ -78,10 +70,7 @@ public class RoleController : ControllerBase
         try
         {
             var result = await _roleService.UpdateAsync(dto, ct);
-
-            // Invalidate lists cache
-            await _cacheService.RemoveAsync(_cacheKeyFactory.Create(TenantCacheEntity.Role, "all:active=True"), ct);
-            await _cacheService.RemoveAsync(_cacheKeyFactory.Create(TenantCacheEntity.Role, "all:active=False"), ct);
+            await InvalidateRoleCache(ct);
 
             return Ok(new ApiResponse<RoleDto> { Success = true, StatusCode = 200, Data = result });
         }
@@ -97,10 +86,14 @@ public class RoleController : ControllerBase
         var result = await _roleService.DeleteAsync(id, ct);
         if (!result) return NotFound(new ApiResponse<bool> { Success = false, StatusCode = 404, Message = "Role not found" });
 
-        // Invalidate lists cache
-        await _cacheService.RemoveAsync(_cacheKeyFactory.Create(TenantCacheEntity.Role, "all:active=True"), ct);
-        await _cacheService.RemoveAsync(_cacheKeyFactory.Create(TenantCacheEntity.Role, "all:active=False"), ct);
+        await InvalidateRoleCache(ct);
 
         return Ok(new ApiResponse<bool> { Success = true, StatusCode = 200, Message = "Deleted successfully", Data = true });
+    }
+
+    private async Task InvalidateRoleCache(CancellationToken ct)
+    {
+        await _cacheService.RemoveAsync(_cacheKeyFactory.Create(TenantCacheEntity.Role, CacheKeys.AllActive), ct);
+        await _cacheService.RemoveAsync(_cacheKeyFactory.Create(TenantCacheEntity.Role, CacheKeys.AllInactive), ct);
     }
 }

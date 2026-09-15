@@ -8,7 +8,6 @@ using scms.Application.Common.Caching;
 using scms.Application.Interfaces;
 using scms.Infrastructure.Caching;
 using SCMS.Domain.Enums;
-using System.Text.Json;
 
 namespace scms.API.Controllers.Tenant;
 
@@ -37,18 +36,13 @@ public class UserController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] bool onlyActive = true, CancellationToken ct = default)
     {
-        var cacheKey = _cacheKeyFactory.Create(TenantCacheEntity.User, $"all:active={onlyActive}");
-        var cachedData = await _cacheService.GetAsync<List<UserDto>>(cacheKey, ct);
-        
-        if (cachedData != null)
-        {
-            return Ok(new ApiResponse<List<UserDto>> { Success = true, StatusCode = 200, Data = cachedData });
-        }
+        var cacheKey = _cacheKeyFactory.Create(TenantCacheEntity.User, CacheKeys.AllActiveKey(onlyActive));
+        var users = await _cacheService.GetOrSetAsync<List<UserDto>>(
+            cacheKey,
+            () => _userService.GetAllAsync(onlyActive, ct),
+            _cacheExpiration.GetExpiration(),
+            ct);
 
-        var users = await _userService.GetAllAsync(onlyActive, ct);
-        
-        await _cacheService.SetAsync(cacheKey, users, _cacheExpiration.GetExpiration(), ct);
-        
         return Ok(new ApiResponse<List<UserDto>> { Success = true, StatusCode = 200, Data = users });
     }
 
@@ -67,9 +61,7 @@ public class UserController : ControllerBase
         var createdBy = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "System";
         var result = await _userService.CreateAsync(dto, createdBy, ct);
         
-        // Invalidate lists cache
-        await _cacheService.RemoveAsync(_cacheKeyFactory.Create(TenantCacheEntity.User, "all:active=True"), ct);
-        await _cacheService.RemoveAsync(_cacheKeyFactory.Create(TenantCacheEntity.User, "all:active=False"), ct);
+        await InvalidateUserCache(ct);
 
         return CreatedAtAction(nameof(GetById), new { id = result.Id }, new ApiResponse<UserDto> { Success = true, StatusCode = 201, Data = result });
     }
@@ -83,10 +75,7 @@ public class UserController : ControllerBase
         try
         {
             var result = await _userService.UpdateAsync(dto, updatedBy, ct);
-            
-            // Invalidate lists cache
-            await _cacheService.RemoveAsync(_cacheKeyFactory.Create(TenantCacheEntity.User, "all:active=True"), ct);
-            await _cacheService.RemoveAsync(_cacheKeyFactory.Create(TenantCacheEntity.User, "all:active=False"), ct);
+            await InvalidateUserCache(ct);
             
             return Ok(new ApiResponse<UserDto> { Success = true, StatusCode = 200, Data = result });
         }
@@ -103,9 +92,7 @@ public class UserController : ControllerBase
         var result = await _userService.DeleteAsync(id, deletedBy, ct);
         if (!result) return NotFound(new ApiResponse<bool> { Success = false, StatusCode = 404, Message = "User not found" });
         
-        // Invalidate lists cache
-        await _cacheService.RemoveAsync(_cacheKeyFactory.Create(TenantCacheEntity.User, "all:active=True"), ct);
-        await _cacheService.RemoveAsync(_cacheKeyFactory.Create(TenantCacheEntity.User, "all:active=False"), ct);
+        await InvalidateUserCache(ct);
 
         return Ok(new ApiResponse<bool> { Success = true, StatusCode = 200, Message = "Deleted successfully", Data = true });
     }
@@ -116,5 +103,11 @@ public class UserController : ControllerBase
         var result = await _userService.GetPermissionsAsync(id, ct);
         if (result == null) return NotFound(new ApiResponse<UserPermissionsResponseDto> { Success = false, StatusCode = 404, Message = "User not found" });
         return Ok(new ApiResponse<UserPermissionsResponseDto> { Success = true, StatusCode = 200, Data = result });
+    }
+
+    private async Task InvalidateUserCache(CancellationToken ct)
+    {
+        await _cacheService.RemoveAsync(_cacheKeyFactory.Create(TenantCacheEntity.User, CacheKeys.AllActive), ct);
+        await _cacheService.RemoveAsync(_cacheKeyFactory.Create(TenantCacheEntity.User, CacheKeys.AllInactive), ct);
     }
 }

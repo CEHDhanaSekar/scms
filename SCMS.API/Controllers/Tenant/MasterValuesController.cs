@@ -39,13 +39,11 @@ public class MasterValuesController : ControllerBase
     public async Task<IActionResult> GetAll(CancellationToken ct = default)
     {
         var cacheKey = _cacheKeyFactory.Create(TenantCacheEntity.MasterValues, "all");
-        var cached = await _cacheService.GetAsync<List<MasterValuesDto>>(cacheKey, ct);
-
-        if (cached != null)
-            return Ok(new ApiResponse<List<MasterValuesDto>> { Success = true, StatusCode = 200, Data = cached });
-
-        var data = await _masterValuesService.GetAllAsync(ct);
-        await _cacheService.SetAsync(cacheKey, data, _cacheExpiration.GetExpiration(), ct);
+        var data = await _cacheService.GetOrSetAsync<List<MasterValuesDto>>(
+            cacheKey,
+            () => _masterValuesService.GetAllAsync(ct),
+            _cacheExpiration.GetExpiration(),
+            ct);
 
         return Ok(new ApiResponse<List<MasterValuesDto>> { Success = true, StatusCode = 200, Data = data });
     }
@@ -57,13 +55,11 @@ public class MasterValuesController : ControllerBase
     public async Task<IActionResult> GetByType(string type, CancellationToken ct = default)
     {
         var cacheKey = _cacheKeyFactory.Create(TenantCacheEntity.MasterValues, $"type:{type}");
-        var cached = await _cacheService.GetAsync<List<MasterValuesDto>>(cacheKey, ct);
-
-        if (cached != null)
-            return Ok(new ApiResponse<List<MasterValuesDto>> { Success = true, StatusCode = 200, Data = cached });
-
-        var data = await _masterValuesService.GetByTypeAsync(type, ct);
-        await _cacheService.SetAsync(cacheKey, data, _cacheExpiration.GetExpiration(), ct);
+        var data = await _cacheService.GetOrSetAsync<List<MasterValuesDto>>(
+            cacheKey,
+            () => _masterValuesService.GetByTypeAsync(type, ct),
+            _cacheExpiration.GetExpiration(),
+            ct);
 
         return Ok(new ApiResponse<List<MasterValuesDto>> { Success = true, StatusCode = 200, Data = data });
     }
@@ -74,17 +70,10 @@ public class MasterValuesController : ControllerBase
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id, CancellationToken ct = default)
     {
-        var cacheKey = _cacheKeyFactory.Create(TenantCacheEntity.MasterValues, id);
-        var cached = await _cacheService.GetAsync<MasterValuesDto>(cacheKey, ct);
-
-        if (cached != null)
-            return Ok(new ApiResponse<MasterValuesDto> { Success = true, StatusCode = 200, Data = cached });
-
         var data = await _masterValuesService.GetByIdAsync(id, ct);
+
         if (data == null)
             return NotFound(new ApiResponse<MasterValuesDto> { Success = false, StatusCode = 404, Message = "MasterValue not found" });
-
-        await _cacheService.SetAsync(cacheKey, data, _cacheExpiration.GetExpiration(), ct);
 
         return Ok(new ApiResponse<MasterValuesDto> { Success = true, StatusCode = 200, Data = data });
     }

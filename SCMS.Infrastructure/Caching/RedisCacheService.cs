@@ -13,21 +13,29 @@ public sealed class RedisCacheService : ICacheService
         _cache = cache;
     }
 
-    // ── Low-level primitives ──────────────────────────────────────────────────
+    // ── Cache-aside ───────────────────────────────────────────────────────────
 
-    public async Task<T?> GetAsync<T>(
+    public async Task<T?> GetOrSetAsync<T>(
         string key,
+        Func<Task<T>> factory,
+        TimeSpan expiration,
         CancellationToken cancellationToken = default)
     {
         var json = await _cache.GetStringAsync(key, cancellationToken);
 
-        if (string.IsNullOrWhiteSpace(json) || json == "null")
-            return default;
+        if (json != null)
+            return JsonSerializer.Deserialize<T>(json);
 
-        return JsonSerializer.Deserialize<T>(json);
+        var data = await factory();
+
+        await SetAsync(key, data, expiration, cancellationToken);
+
+        return data;
     }
 
-    public async Task SetAsync<T>(
+    // ── Low-level primitives ──────────────────────────────────────────────────
+
+    private async Task SetAsync<T>(
         string key,
         T value,
         TimeSpan expiration,
