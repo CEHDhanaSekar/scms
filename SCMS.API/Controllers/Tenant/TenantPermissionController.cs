@@ -35,17 +35,12 @@ public class TenantPermissionController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] bool onlyActive = true, CancellationToken ct = default)
     {
-        var cacheKey = _cacheKeyFactory.Create(TenantCacheEntity.Permission, $"all:active={onlyActive}");
-        var cachedData = await _cacheService.GetAsync<List<TenantPermissionDto>>(cacheKey, ct);
-
-        if (cachedData != null)
-        {
-            return Ok(new ApiResponse<List<TenantPermissionDto>> { Success = true, StatusCode = 200, Data = cachedData });
-        }
-
-        var permissions = await _permissionService.GetAllAsync(onlyActive, ct);
-
-        await _cacheService.SetAsync(cacheKey, permissions, _cacheExpiration.GetExpiration(), ct);
+        var cacheKey = _cacheKeyFactory.Create(TenantCacheEntity.Permission, CacheKeys.AllActiveKey(onlyActive));
+        var permissions = await _cacheService.GetOrSetAsync<List<TenantPermissionDto>>(
+            cacheKey,
+            () => _permissionService.GetAllAsync(onlyActive, ct),
+            _cacheExpiration.GetExpiration(),
+            ct);
 
         return Ok(new ApiResponse<List<TenantPermissionDto>> { Success = true, StatusCode = 200, Data = permissions });
     }

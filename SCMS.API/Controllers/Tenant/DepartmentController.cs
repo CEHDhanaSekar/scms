@@ -37,16 +37,11 @@ public class DepartmentController : ControllerBase
     public async Task<IActionResult> GetAll(CancellationToken ct = default)
     {
         var cacheKey = _cacheKeyFactory.Create(TenantCacheEntity.Department, "all");
-        var cachedData = await _cacheService.GetAsync<List<DepartmentDto>>(cacheKey, ct);
-
-        if (cachedData != null)
-        {
-            return Ok(new ApiResponse<List<DepartmentDto>> { Success = true, StatusCode = 200, Data = cachedData });
-        }
-
-        var departments = await _departmentService.GetAllAsync(ct);
-
-        await _cacheService.SetAsync(cacheKey, departments, _cacheExpiration.GetExpiration(), ct);
+        var departments = await _cacheService.GetOrSetAsync<List<DepartmentDto>>(
+            cacheKey,
+            () => _departmentService.GetAllAsync(ct),
+            _cacheExpiration.GetExpiration(),
+            ct);
 
         return Ok(new ApiResponse<List<DepartmentDto>> { Success = true, StatusCode = 200, Data = departments });
     }

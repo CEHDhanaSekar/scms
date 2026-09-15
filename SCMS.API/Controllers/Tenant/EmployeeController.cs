@@ -37,16 +37,11 @@ public class EmployeeController : ControllerBase
     public async Task<IActionResult> GetAll(CancellationToken ct = default)
     {
         var cacheKey = _cacheKeyFactory.Create(TenantCacheEntity.Employee, "all");
-        var cachedData = await _cacheService.GetAsync<List<EmployeeDto>>(cacheKey, ct);
-
-        if (cachedData != null)
-        {
-            return Ok(new ApiResponse<List<EmployeeDto>> { Success = true, StatusCode = 200, Data = cachedData });
-        }
-
-        var employees = await _employeeService.GetAllAsync(ct);
-
-        await _cacheService.SetAsync(cacheKey, employees, _cacheExpiration.GetExpiration(), ct);
+        var employees = await _cacheService.GetOrSetAsync<List<EmployeeDto>>(
+            cacheKey,
+            () => _employeeService.GetAllAsync(ct),
+            _cacheExpiration.GetExpiration(),
+            ct);
 
         return Ok(new ApiResponse<List<EmployeeDto>> { Success = true, StatusCode = 200, Data = employees });
     }

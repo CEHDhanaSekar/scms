@@ -1,19 +1,19 @@
-using SCMS.Domain.Enums;
-
 namespace scms.Application.Common.Caching;
 
 public interface ICacheService
 {
-    Task<T?> GetAsync<T>(
+    /// <summary>
+    /// Returns the cached value for <paramref name="key"/>.
+    /// On a cache miss, <paramref name="factory"/> is invoked, the result is stored
+    /// with <paramref name="expiration"/>, and then returned.
+    /// </summary>
+    Task<T?> GetOrSetAsync<T>(
         string key,
-        CancellationToken cancellationToken = default);
-
-    Task SetAsync<T>(
-        string key,
-        T value,
+        Func<Task<T>> factory,
         TimeSpan expiration,
         CancellationToken cancellationToken = default);
 
+    /// <summary>Removes the entry with the given <paramref name="key"/> from the cache.</summary>
     Task RemoveAsync(
         string key,
         CancellationToken cancellationToken = default);
