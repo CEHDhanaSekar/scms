@@ -75,6 +75,6 @@ public class TenantDbContext(DbContextOptions<TenantDbContext> options) : DbCont
 
     private static void ConfigMasterValues(EntityTypeBuilder<MasterValues> e)
     {
-        e.HasData(TenantDataSeed.EmployeeTypes);
+        e.HasData(TenantDataSeed.AllMasterValues);
     }
 }
