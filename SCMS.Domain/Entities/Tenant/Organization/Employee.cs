@@ -1,3 +1,4 @@
+using scms.Domain.Entities.Tenant.Auth;
 using scms.Domain.Entities.Tenant.Common;
 using SCMS.Shared.Entities;
 

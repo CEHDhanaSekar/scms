@@ -1,4 +1,4 @@
-using scms.Domain.Entities.Tenant.Master;
+using scms.Domain.Entities.Tenant.Auth;
 
 namespace scms.Application.Interfaces.Tenant;
 

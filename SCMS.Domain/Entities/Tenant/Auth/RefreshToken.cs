@@ -1,5 +1,4 @@
 ﻿// SCMS.Domain/Entities/RefreshToken.cs
-using scms.Domain.Entities.Tenant.Master;
 using SCMS.Shared.Entities;
 
 namespace scms.Domain.Entities.Tenant.Auth;

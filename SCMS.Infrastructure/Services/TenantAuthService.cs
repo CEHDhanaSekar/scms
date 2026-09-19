@@ -6,7 +6,6 @@ using scms.Application.Dtos.Tenant;
 using scms.Application.Interfaces;
 using scms.Application.Interfaces.Tenant;
 using scms.Domain.Entities.Tenant.Auth;
-using scms.Domain.Entities.Tenant.Master;
 using scms.Infrastructure.Persistence;
 using scms.Shared.Models;
 using System.IdentityModel.Tokens.Jwt;

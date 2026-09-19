@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using scms.Application.Interfaces.Tenant;
-using scms.Domain.Entities.Tenant.Master;
+using scms.Domain.Entities.Tenant.Auth;
 using scms.Infrastructure.Persistence;
 
 namespace scms.Infrastructure.Repositories.Tenant;

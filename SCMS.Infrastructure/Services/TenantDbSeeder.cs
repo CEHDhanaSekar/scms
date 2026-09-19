@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using scms.Application.Interfaces;
-using scms.Domain.Entities.Tenant.Master;
+using scms.Domain.Entities.Tenant.Auth;
 using scms.Infrastructure.Persistence;
 
 namespace scms.Infrastructure.Services;
@@ -50,7 +50,7 @@ public class TenantDbSeeder : ITenantDbSeeder
         await tenantCtx.SaveChangesAsync(ct);
 
         // Create Admin role
-        var adminRole = new Domain.Entities.Tenant.Master.Role
+        var adminRole = new Domain.Entities.Tenant.Auth.Role
         {
             Name = "Admin",
             Description = "Default System Administrator"
@@ -59,7 +59,7 @@ public class TenantDbSeeder : ITenantDbSeeder
         await tenantCtx.SaveChangesAsync(ct);
 
         // Link RolePermissions
-        var rolePermissions = tenantPermissions.Select(p => new scms.Domain.Entities.Tenant.Master.RolePermission
+        var rolePermissions = tenantPermissions.Select(p => new scms.Domain.Entities.Tenant.Auth.RolePermission
         {
             RoleId = adminRole.Id,
             PermissionId = p.Id
@@ -69,7 +69,7 @@ public class TenantDbSeeder : ITenantDbSeeder
 
         // Create Admin user
         string rawPassword = Guid.NewGuid().ToString("N")[..12]; // simple generator
-        var adminUser = new Domain.Entities.Tenant.Master.User
+        var adminUser = new Domain.Entities.Tenant.Auth.User
         {
             Username = $"admin@{tenantCode}",
             Email = email,
@@ -81,7 +81,7 @@ public class TenantDbSeeder : ITenantDbSeeder
         await tenantCtx.SaveChangesAsync(ct);
 
         // Link UserRole
-        tenantCtx.UserRoles.Add(new Domain.Entities.Tenant.Master.UserRole
+        tenantCtx.UserRoles.Add(new Domain.Entities.Tenant.Auth.UserRole
         {
             UserId = adminUser.Id,
             RoleId = adminRole.Id
@@ -110,7 +110,7 @@ public class TenantDbSeeder : ITenantDbSeeder
 
         var existingPermissions = await tenantCtx.Permissions.ToListAsync(ct);
         var existingPermissionCodes = existingPermissions.Select(p => p.Code).ToHashSet();
-        
+
         var newPermissionKeys = permissionKeys.Where(code => !string.IsNullOrWhiteSpace(code)).ToHashSet();
 
         // Find permissions to add
@@ -139,14 +139,14 @@ public class TenantDbSeeder : ITenantDbSeeder
         }
 
         await tenantCtx.SaveChangesAsync(ct);
-        
+
         // Add new permissions to Admin role
         if (permissionsToAdd.Count > 0)
         {
             var adminRole = await tenantCtx.Roles.FirstOrDefaultAsync(r => r.Name == "Admin", ct);
             if (adminRole != null)
             {
-                var rolePermissions = permissionsToAdd.Select(p => new scms.Domain.Entities.Tenant.Master.RolePermission
+                var rolePermissions = permissionsToAdd.Select(p => new scms.Domain.Entities.Tenant.Auth.RolePermission
                 {
                     RoleId = adminRole.Id,
                     PermissionId = p.Id

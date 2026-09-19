@@ -1,7 +1,7 @@
 ﻿// SCMS.Domain/Entities/Role.cs
 using SCMS.Shared.Entities;
 
-namespace scms.Domain.Entities.Tenant.Master;
+namespace scms.Domain.Entities.Tenant.Auth;
 
 public class Role : BaseEntity
 {
