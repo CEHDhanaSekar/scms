@@ -1,6 +1,7 @@
 using AutoMapper;
 using scms.Application.Dtos.Tenant;
 using scms.Domain.Entities.Tenant;
+using scms.Domain.Entities.Tenant.Master;
 
 namespace scms.Application.Mapper;
 

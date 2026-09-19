@@ -1,6 +1,6 @@
 using SCMS.Shared.Entities;
 
-namespace scms.Domain.Entities.Tenant;
+namespace scms.Domain.Entities.Tenant.Common;
 
 public class MasterValues : BaseEntity
 {

@@ -1,7 +1,8 @@
 // SCMS.Domain/Entities/User.cs
+using scms.Domain.Entities.Tenant.Auth;
 using SCMS.Shared.Entities;
 
-namespace scms.Domain.Entities.Tenant;
+namespace scms.Domain.Entities.Tenant.Master;
 
 public class User : AuditableEntity
 {

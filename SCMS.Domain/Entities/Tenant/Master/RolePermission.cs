@@ -1,7 +1,7 @@
 // SCMS.Domain/Entities/RolePermission.cs
 using SCMS.Shared.Entities;
 
-namespace scms.Domain.Entities.Tenant;
+namespace scms.Domain.Entities.Tenant.Master;
 
 public class RolePermission : BaseEntity
 {

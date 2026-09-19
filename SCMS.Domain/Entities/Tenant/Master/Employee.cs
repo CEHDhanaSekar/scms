@@ -1,7 +1,7 @@
-
+using scms.Domain.Entities.Tenant.Common;
 using SCMS.Shared.Entities;
 
-namespace scms.Domain.Entities.Tenant;
+namespace scms.Domain.Entities.Tenant.Master;
 
 public class Employee : AuditableEntity
 {

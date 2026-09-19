@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using scms.Application.Interfaces;
+using scms.Domain.Entities.Tenant.Master;
 using scms.Infrastructure.Persistence;
-using scms.Domain.Entities.Tenant;
 
 namespace scms.Infrastructure.Services;
 
@@ -50,7 +50,7 @@ public class TenantDbSeeder : ITenantDbSeeder
         await tenantCtx.SaveChangesAsync(ct);
 
         // Create Admin role
-        var adminRole = new Domain.Entities.Tenant.Role
+        var adminRole = new Domain.Entities.Tenant.Master.Role
         {
             Name = "Admin",
             Description = "Default System Administrator"
@@ -59,7 +59,7 @@ public class TenantDbSeeder : ITenantDbSeeder
         await tenantCtx.SaveChangesAsync(ct);
 
         // Link RolePermissions
-        var rolePermissions = tenantPermissions.Select(p => new scms.Domain.Entities.Tenant.RolePermission
+        var rolePermissions = tenantPermissions.Select(p => new scms.Domain.Entities.Tenant.Master.RolePermission
         {
             RoleId = adminRole.Id,
             PermissionId = p.Id
@@ -69,7 +69,7 @@ public class TenantDbSeeder : ITenantDbSeeder
 
         // Create Admin user
         string rawPassword = Guid.NewGuid().ToString("N")[..12]; // simple generator
-        var adminUser = new Domain.Entities.Tenant.User
+        var adminUser = new Domain.Entities.Tenant.Master.User
         {
             Username = $"admin@{tenantCode}",
             Email = email,
@@ -81,7 +81,7 @@ public class TenantDbSeeder : ITenantDbSeeder
         await tenantCtx.SaveChangesAsync(ct);
 
         // Link UserRole
-        tenantCtx.UserRoles.Add(new Domain.Entities.Tenant.UserRole
+        tenantCtx.UserRoles.Add(new Domain.Entities.Tenant.Master.UserRole
         {
             UserId = adminUser.Id,
             RoleId = adminRole.Id
@@ -146,7 +146,7 @@ public class TenantDbSeeder : ITenantDbSeeder
             var adminRole = await tenantCtx.Roles.FirstOrDefaultAsync(r => r.Name == "Admin", ct);
             if (adminRole != null)
             {
-                var rolePermissions = permissionsToAdd.Select(p => new scms.Domain.Entities.Tenant.RolePermission
+                var rolePermissions = permissionsToAdd.Select(p => new scms.Domain.Entities.Tenant.Master.RolePermission
                 {
                     RoleId = adminRole.Id,
                     PermissionId = p.Id
