@@ -1,6 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using scms.Domain.Entities.Tenant;
+using scms.Domain.Entities.Tenant.Auth;
+using scms.Domain.Entities.Tenant.Common;
+using scms.Domain.Entities.Tenant.Core;
+using scms.Domain.Entities.Tenant.Master;
 
 namespace scms.Infrastructure.Persistence;
 

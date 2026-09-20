@@ -1,4 +1,4 @@
-using scms.Domain.Entities.Tenant;
+using scms.Domain.Entities.Tenant.Common;
 
 public static class TenantDataSeed
 {
